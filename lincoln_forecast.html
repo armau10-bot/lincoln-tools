@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Lincoln — Forecast Operativo</title>
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f6f8;
+    --bg-tertiary: #eef0f3;
+    --text-primary: #1a1a2e;
+    --text-secondary: #6b7280;
+    --border-light: rgba(0,0,0,0.10);
+    --border-mid: rgba(0,0,0,0.18);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  .hdr {
+    background: #1A2B4A;
+    color: #fff;
+    padding: 16px 20px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hdr h1 { font-size: 15px; font-weight: 500; color: #fff; }
+  .hdr span { font-size: 11px; color: #8eb4d4; }
+  .body-wrap {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    padding: 16px;
+  }
+  .paste-panel {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .paste-panel h3 { font-size: 12px; font-weight: 500; margin-bottom: 6px; }
+  .paste-panel p { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+  textarea {
+    width: 100%; font-size: 11px; padding: 8px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    resize: vertical;
+    font-family: var(--font-mono);
+    line-height: 1.6;
+  }
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  button {
+    padding: 6px 18px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font);
+    transition: opacity 0.15s;
+  }
+  button:hover { opacity: 0.85; }
+  .btn-primary { background: #1A2B4A; color: #fff; border: none; }
+  .btn-secondary { background: transparent; color: var(--text-primary); border: 0.5px solid var(--border-mid); }
+  .msg { font-size: 11px; color: #1A5E1A; }
+  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .controls label { font-size: 11px; color: var(--text-secondary); margin-right: 4px; }
+  input[type=date], select {
+    font-size: 12px; padding: 5px 8px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font);
+  }
+  .info-bar {
+    background: #EAF3DE;
+    border-radius: var(--radius-md);
+    padding: 7px 12px;
+    font-size: 10px;
+    color: #3B6D11;
+    margin-bottom: 12px;
+  }
+  .kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
+  .kpi { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px 12px; }
+  .kpi-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+  .kpi-val { font-size: 15px; font-weight: 500; }
+  .tabs { display: flex; gap: 2px; background: var(--bg-secondary); border-radius: var(--radius-md); padding: 3px; margin-bottom: 12px; width: fit-content; }
+  .tab { padding: 5px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; background: transparent; color: var(--text-secondary); font-family: var(--font); }
+  .tab.active { background: var(--bg-primary); color: var(--text-primary); box-shadow: 0 0 0 0.5px var(--border-light); }
+  .scroll-wrap { max-height: 540px; overflow-y: auto; border: 0.5px solid var(--border-light); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+  thead th { background: #1A2B4A; color: #fff; padding: 9px 6px; text-align: center; font-weight: 500; font-size: 10px; position: sticky; top: 0; z-index: 2; }
+  thead th:first-child { text-align: left; width: 90px; }
+  thead th:nth-child(2) { width: 84px; }
+  thead th:nth-child(3) { width: 80px; }
+  td { padding: 6px; border-bottom: 0.5px solid var(--border-light); text-align: center; vertical-align: middle; }
+  td:first-child { text-align: left; font-weight: 500; }
+  tbody tr:hover td { background: var(--bg-secondary) !important; }
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 600; }
+  .bar-wrap { display: flex; align-items: center; gap: 5px; }
+  input[type=number] {
+    width: 48px; padding: 2px 4px; font-size: 11px; text-align: center;
+    border: 0.5px solid var(--border-mid); border-radius: 4px;
+    background: var(--bg-primary); color: var(--text-primary);
+    font-family: var(--font);
+  }
+  .exp-inner {
+    padding: 12px; border-radius: var(--radius-md);
+    background: var(--bg-primary); border: 0.5px solid var(--border-light);
+    margin: 4px 0 8px;
+  }
+  .exp-inner table th {
+    background: #1A2B4A; color: #fff; position: static;
+  }
+  .disc-pill { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 500; margin: 2px; }
+  .hint { font-size: 10px; color: var(--text-secondary); margin-top: 8px; text-align: center; }
+  @media (max-width: 600px) {
+    .kpis { grid-template-columns: repeat(2,1fr); }
+    .controls { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hdr">
+    <h1>Hotel Lincoln — Forecast operativo 30 dias</h1>
+    <span id="hdr-date"></span>
+  </div>
+
+  <div class="body-wrap">
+
+    <div class="paste-panel">
+      <h3>Pega aqui el bloque de ocupacion que te dio Claude</h3>
+      <p>Sube la foto del informe Zeus a Claude, copia el bloque que te devuelve y pegalo aqui. Formato: <code>YYYY-MM-DD:ocupacion</code> una linea por dia.</p>
+      <textarea id="pasteInput" rows="6" placeholder="2026-05-25:22&#10;2026-05-26:29&#10;2026-05-27:24&#10;..."></textarea>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="aplicarPaste()">Aplicar datos</button>
+        <button class="btn-secondary" onclick="limpiarTodo()">Limpiar</button>
+        <span class="msg" id="pasteMsg"></span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div><label>Inicio del periodo:</label>
+        <input type="date" id="startDate"></div>
+      <div><label>Tipologia activa:</label>
+        <select id="tipoSel"></select></div>
+      <div style="margin-left:auto;font-size:11px;color:var(--text-secondary)">
+        O edita Ocup% manualmente fila a fila
+      </div>
+    </div>
+
+    <div class="info-bar">
+      <b>Temporadas:</b> Feria 31 jul–9 ago &nbsp;·&nbsp; Vacaciones 20 jun–10 jul &nbsp;·&nbsp; Semana Santa abr 1–15 &nbsp;·&nbsp; Receso 5–11 oct &nbsp;·&nbsp; Diciembre completo &nbsp;·&nbsp; Resto = T.Baja &nbsp;·&nbsp; Finde siempre diferenciado
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('otas',this)">OTAs — Rack Omnibees</button>
+      <button class="tab" onclick="setTab('directa',this)">Directa / Walk-in</button>
+    </div>
+
+    <div class="scroll-wrap">
+      <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+    </div>
+    <p class="hint">Clic en cualquier fila para ver todas las tipologias y descuentos del dia</p>
+
+  </div>
+</div>
+
+<script>
+const TIPOS=["Doble 1p","Doble 2p","Doble2c 1p","Doble2c 2p","2CG 2p","2CG 3p","2CG 4p","Suite Jr 1p","Suite Jr 2p"];
+const TF={
+  "Doble 1p":   {bs:305000,bf:305000,as:430000,af:430000,fe:750000,db:250000,da:380000},
+  "Doble 2p":   {bs:330000,bf:330000,as:480000,af:480000,fe:820000,db:310000,da:450000},
+  "Doble2c 1p": {bs:340000,bf:340000,as:455000,af:455000,fe:860000,db:310000,da:450000},
+  "Doble2c 2p": {bs:380000,bf:380000,as:510000,af:510000,fe:920000,db:400000,da:550000},
+  "2CG 2p":     {bs:430000,bf:430000,as:570000,af:570000,fe:980000,db:400000,da:550000},
+  "2CG 3p":     {bs:490000,bf:490000,as:645000,af:645000,fe:1060000,db:490000,da:660000},
+  "2CG 4p":     {bs:540000,bf:540000,as:720000,af:720000,fe:1140000,db:490000,da:660000},
+  "Suite Jr 1p":{bs:490000,bf:490000,as:750000,af:750000,fe:1065000,db:520000,da:750000},
+  "Suite Jr 2p":{bs:510000,bf:510000,as:780000,af:780000,fe:1210000,db:600000,da:850000},
+};
+
+function parseLD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(s,n){const d=parseLD(s);d.setDate(d.getDate()+n);return dateStr(d);}
+
+function getTemp(s){
+  const d=parseLD(s),m=d.getMonth()+1,day=d.getDate(),dow=d.getDay();
+  if((m===7&&day>=31)||(m===8&&day<=9)) return 'feria';
+  if((m===6&&day>=20)||(m===7&&day<=10)) return 'alta';
+  if(m===10&&day>=5&&day<=11) return 'alta';
+  if(m===12) return 'alta';
+  if(m===4&&day<=15) return 'alta';
+  if(dow===5||dow===6) return 'baja-fin';
+  return 'baja-sem';
+}
+
+const TC={
+  feria:     {label:'Feria',      bg:'#FADBD8',color:'#7D0000'},
+  alta:      {label:'T. Alta',    bg:'#FDEBD0',color:'#7D3C00'},
+  'baja-fin':{label:'Baja finde', bg:'#D5F5E3',color:'#1A5E1A'},
+  'baja-sem':{label:'Baja sem.',  bg:'#D6EAF8',color:'#154360'},
+};
+
+function getRack(tipo,temp){
+  const t=TF[tipo];
+  return temp==='feria'?t.fe:temp==='alta'?t.as:temp==='baja-fin'?t.bf:t.bs;
+}
+function getDirecta(tipo,temp,ocup,walkin){
+  const t=TF[tipo];
+  let base=(temp==='alta'||temp==='feria')?t.da:t.db;
+  if(walkin&&ocup!==null&&ocup>80) base+=30000;
+  return base;
+}
+function getMult(ocup,temp){
+  if(ocup===null) return 1;
+  if(ocup>85) return 1.20;
+  if(ocup>75) return 1.10;
+  if(ocup>65) return 1.05;
+  if(ocup>50) return 1.00;
+  if(ocup>35) return(temp==='feria'||temp==='alta')?1.00:0.95;
+  return(temp==='feria'||temp==='alta')?1.00:0.90;
+}
+function r1k(n){return Math.round(n/1000)*1000;}
+function fmtCOP(n){return'$'+Math.round(n).toLocaleString('es-CO');}
+
+function getDesc(temp,ocup){
+  const o=ocup??50,isFeria=temp==='feria',isAlta=temp==='alta';
+  return{
+    geniusOk:!isFeria,
+    genius:isFeria?'Excluir en Extranet':'Activo -15%',
+    escapadaOk:!isFeria&&!isAlta&&temp!=='baja-fin'&&o<50,
+    escapada:isFeria||isAlta?'Apagada':temp==='baja-fin'?'Apagada (finde)':o<50?'Activa max -10%':'No necesaria',
+    nota:isFeria?'FERIA: excluir Genius en Extranet. Solo NR. Sin descuentos OTA.':
+      isAlta&&o>75?'T. Alta alta ocupacion: Escapada apagada.':
+      o<35?'Ocupacion baja: Genius + Escapada activos. Nacional/Intl/Movil siempre.':
+      'Genius activo. Nacional, Intl y Movil siempre activos (no acumulables entre si).',
+  };
+}
+
+function discPills(desc){
+  return[
+    [desc.geniusOk,'Genius'],
+    [desc.escapadaOk,'Escapada'],
+    [true,'Nacional -10%'],
+    [true,'Intl. -10%'],
+    [true,'Movil -10%'],
+  ].map(([ok,lbl])=>`<span class="disc-pill" style="background:${ok?'#D5F5E3':'#f1f1f1'};color:${ok?'#1A5E1A':'#888'}">${ok?'&#10003;':'&#10005;'} ${lbl}</span>`).join('');
+}
+
+let currentTab='otas',ocups={},expandedDate=null,startDateVal='';
+
+function getDays(){const d=[];for(let i=0;i<30;i++)d.push(addDays(startDateVal,i));return d;}
+
+function aplicarPaste(){
+  const txt=document.getElementById('pasteInput').value.trim();
+  if(!txt) return;
+  let count=0,firstDate=null;
+  txt.split('\n').forEach(line=>{
+    const parts=line.trim().split(':');
+    if(parts.length>=2){
+      const fecha=parts[0].trim(),val=parseInt(parts[1].trim(),10);
+      if(fecha.match(/^\d{4}-\d{2}-\d{2}$/)&&!isNaN(val)){
+        ocups[fecha]=Math.min(100,Math.max(0,val));
+        if(!firstDate) firstDate=fecha;
+        count++;
+      }
+    }
+  });
+  if(firstDate){startDateVal=firstDate;document.getElementById('startDate').value=firstDate;}
+  const msg=document.getElementById('pasteMsg');
+  msg.textContent=count+' dias cargados correctamente';
+  msg.style.color='#1A5E1A';
+  setTimeout(()=>msg.textContent='',3000);
+  expandedDate=null;
+  renderTable();
+}
+
+function limpiarTodo(){
+  ocups={};
+  document.getElementById('pasteInput').value='';
+  document.getElementById('pasteMsg').textContent='';
+  expandedDate=null;
+  renderTable();
+}
+
+function renderKPIs(days){
+  const ol=days.map(d=>ocups[d]??null).filter(o=>o!==null);
+  const prom=ol.length?Math.round(ol.reduce((a,b)=>a+b,0)/ol.length):0;
+  const carg=Object.keys(ocups).filter(k=>days.includes(k)).length;
+  const sel=document.getElementById('tipoSel').value||'Doble 2p';
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Ocup. promedio</div><div class="kpi-val" style="color:${prom>65?'#922B21':prom>35?'#A04000':'#1A5E1A'}">${prom}%</div></div>
+    <div class="kpi"><div class="kpi-label">Periodo</div><div class="kpi-val" style="font-size:12px">${days[0].slice(5)} &rarr; ${days[29].slice(5)}</div></div>
+    <div class="kpi"><div class="kpi-label">Dias cargados</div><div class="kpi-val">${carg} / 30</div></div>
+    <div class="kpi"><div class="kpi-label">Tipologia</div><div class="kpi-val" style="font-size:12px;color:#1A2B4A">${sel}</div></div>`;
+}
+
+function renderTable(){
+  const days=getDays(),sel=document.getElementById('tipoSel').value||'Doble 2p';
+  renderKPIs(days);
+  const isOta=currentTab==='otas';
+  document.getElementById('thead').innerHTML=`<tr>
+    <th style="text-align:left">Fecha</th><th>Temporada</th><th>Ocup%</th>
+    ${isOta
+      ?'<th>Rack OTA</th><th>Neto -15%</th><th>Descuentos hoy</th>'
+      :'<th>Directa</th><th>Walk-in</th><th>Instruccion recepcion</th>'}
+  </tr>`;
+
+  let html='';
+  days.forEach(d=>{
+    const ocup=ocups[d]??null,temp=getTemp(d);
+    const tc=TC[temp],mult=getMult(ocup,temp);
+    const rack=r1k(getRack(sel,temp)*mult);
+    const neto=r1k(rack*0.85);
+    const directa=getDirecta(sel,temp,ocup,false);
+    const walkin=getDirecta(sel,temp,ocup,true);
+    const desc=getDesc(temp,ocup);
+    const pd=parseLD(d),dow=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'][pd.getDay()];
+    const isFeria=temp==='feria',isAlta=temp==='alta';
+    const rowBg=isFeria?'#FEF0EE':isAlta?'#FEF7EE':'#fff';
+    const isExp=expandedDate===d;
+    const pct=ocup!==null?Math.min(ocup,100):0;
+    const barColor=ocup>75?'#922B21':ocup>50?'#A04000':'#1A5E1A';
+
+    const ocupCell=`<div class="bar-wrap">
+      <input type="number" min="0" max="100" step="1" value="${ocup??''}" placeholder="—"
+        onchange="setOcup('${d}',this.value)" onclick="event.stopPropagation()">
+      ${ocup!==null?`<div style="width:${pct*0.44}px;height:5px;border-radius:3px;flex-shrink:0;background:${barColor}"></div>`:''}
+    </div>`;
+
+    let mid='';
+    if(isOta){
+      const ac=desc.geniusOk?(desc.escapadaOk?'Genius + Escapada':'Genius activo'):'Sin Genius (Feria)';
+      mid=`<td style="font-weight:500;color:${isFeria?'#7D0000':isAlta?'#7D3C00':'#1a1a2e'}">${fmtCOP(rack)}</td>
+           <td style="color:#6b7280">${fmtCOP(neto)}</td>
+           <td style="text-align:left;font-size:10px;color:${desc.geniusOk?'#1A5E1A':'#922B21'}">${ac}</td>`;
+    } else {
+      const inst=isFeria?'Feria: OTA T.Alta finde. Sin descuento.':
+        isAlta?'T.Alta: NR preferido. No bajar.':
+        ocup!==null&&ocup<35?'Ocupacion baja: ofrecer desayuno antes de bajar.':
+        'Tarifa estandar. No negociar por debajo.';
+      mid=`<td style="font-weight:500;color:#1A2B4A">${fmtCOP(directa)}</td>
+           <td style="color:${ocup!==null&&ocup>80?'#922B21':'#6b7280'}">${fmtCOP(walkin)}${ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':''}</td>
+           <td style="text-align:left;font-size:10px;color:#6b7280">${inst}</td>`;
+    }
+
+    html+=`<tr style="background:${rowBg};cursor:pointer" onclick="toggleExp('${d}')">
+      <td><span style="color:#6b7280;font-size:10px;margin-right:4px">${dow}</span>${d.slice(5)}</td>
+      <td><span class="badge" style="background:${tc.bg};color:${tc.color}">${tc.label}</span></td>
+      <td>${ocupCell}</td>${mid}
+    </tr>`;
+
+    if(isExp){
+      const tiposRows=TIPOS.map((t,i)=>{
+        const r=r1k(getRack(t,temp)*mult);
+        const dir=getDirecta(t,temp,ocup,false);
+        const wlk=getDirecta(t,temp,ocup,true);
+        const isSuite=t.includes('Suite');
+        return`<tr style="background:${i%2===0?'#f4f6f8':'#fff'}">
+          <td style="font-weight:${isSuite?500:400};color:${isSuite?'#1A2B4A':'#1a1a2e'};padding:4px 6px">${t}</td>
+          <td style="text-align:right;font-weight:500;padding:4px 6px">${fmtCOP(r)}</td>
+          <td style="text-align:right;color:#6b7280;padding:4px 6px">${fmtCOP(r1k(r*0.85))}</td>
+          <td style="text-align:right;color:#1A2B4A;padding:4px 6px">${fmtCOP(dir)}</td>
+          <td style="text-align:right;color:${ocup!==null&&ocup>80?'#922B21':'#6b7280'};padding:4px 6px">${fmtCOP(wlk)}</td>
+        </tr>`;
+      }).join('');
+
+      html+=`<tr style="background:${rowBg}"><td colspan="6" style="padding:8px 12px">
+        <div class="exp-inner">
+          <div style="font-size:11px;font-weight:500;margin-bottom:8px">Todas las tipologias — ${d}</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;font-size:10px;border-collapse:collapse;min-width:420px">
+              <thead><tr>
+                <th style="text-align:left;padding:5px 6px;width:120px">Tipo</th>
+                <th style="text-align:right;padding:5px 6px">Rack OTA</th>
+                <th style="text-align:right;padding:5px 6px">Neto -15%</th>
+                <th style="text-align:right;padding:5px 6px">Directa</th>
+                <th style="text-align:right;padding:5px 6px">Walk-in</th>
+              </tr></thead>
+              <tbody>${tiposRows}</tbody>
+            </table>
+          </div>
+          <div style="margin-top:8px;padding:8px 10px;background:#f4f6f8;border-radius:8px">
+            <div style="font-size:10px;font-weight:500;margin-bottom:4px">Descuentos activos</div>
+            <div>${discPills(desc)}</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:4px;font-style:italic">${desc.nota}</div>
+          </div>
+        </div>
+      </td></tr>`;
+    }
+  });
+  document.getElementById('tbody').innerHTML=html;
+}
+
+function setTab(t,btn){
+  currentTab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+function setOcup(date,val){
+  if(val===''||val===null){delete ocups[date];}
+  else{ocups[date]=Math.min(100,Math.max(0,Number(val)));}
+  renderTable();
+}
+function toggleExp(d){expandedDate=expandedDate===d?null:d;renderTable();}
+
+const today=new Date();
+startDateVal=dateStr(today);
+document.getElementById('startDate').value=startDateVal;
+document.getElementById('hdr-date').textContent=today.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+const tipoSel=document.getElementById('tipoSel');
+TIPOS.forEach(t=>{const o=document.createElement('option');o.value=o.textContent=t;tipoSel.appendChild(o);});
+tipoSel.value='Doble 2p';
+tipoSel.onchange=renderTable;
+document.getElementById('startDate').onchange=function(){startDateVal=this.value;ocups={};expandedDate=null;renderTable();};
+renderTable();
+</script>
+</body>
+</html>

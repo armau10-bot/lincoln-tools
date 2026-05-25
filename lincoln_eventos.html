@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Lincoln — Gestor de Eventos</title>
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f6f8;
+    --text-primary: #1a1a2e;
+    --text-secondary: #6b7280;
+    --border-light: rgba(0,0,0,0.10);
+    --border-mid: rgba(0,0,0,0.18);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); font-size: 13px; color: var(--text-primary); background: #f0f2f5; min-height: 100vh; padding: 24px 16px; }
+  .container { max-width: 960px; margin: 0 auto; }
+  .hdr { background: #1A2B4A; color: #fff; padding: 16px 20px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; align-items: center; justify-content: space-between; }
+  .hdr h1 { font-size: 15px; font-weight: 500; color: #fff; }
+  .hdr span { font-size: 11px; color: #8eb4d4; }
+  .body-wrap { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: 16px; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filt-btn { padding: 5px 14px; border-radius: var(--radius-md); border: 0.5px solid var(--border-light); cursor: pointer; font-size: 11px; background: transparent; color: var(--text-primary); font-family: var(--font); transition: all 0.15s; }
+  .filt-btn.active { background: #1A2B4A; color: #fff; border-color: #1A2B4A; }
+  .filt-btn:hover:not(.active) { background: var(--bg-secondary); }
+  button.btn-add { padding: 6px 16px; background: #1A2B4A; color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 12px; font-weight: 500; font-family: var(--font); }
+  .nuevo-form { border: 1.5px dashed var(--border-mid); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 14px; display: none; }
+  .nuevo-form h3 { font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 10px; }
+  .form-grid label { font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 3px; }
+  input[type=text], input[type=date], input[type=number], select {
+    width: 100%; font-size: 11px; padding: 5px 8px;
+    border: 0.5px solid var(--border-mid); border-radius: 4px;
+    background: var(--bg-primary); color: var(--text-primary); font-family: var(--font);
+  }
+  .form-btns { display: flex; gap: 8px; }
+  .btn-ok { padding: 6px 18px; background: #1A5E1A; color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 12px; font-family: var(--font); }
+  .btn-cancel { padding: 6px 14px; background: transparent; border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); cursor: pointer; font-size: 12px; font-family: var(--font); }
+  .ev-card { border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 8px; background: var(--bg-primary); }
+  .ev-header { padding: 12px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; transition: background 0.1s; }
+  .ev-header:hover { background: var(--bg-secondary); }
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 600; }
+  .ev-body { padding: 14px; border-top: 0.5px solid var(--border-light); }
+  .accion-box { border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; }
+  .ev-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .ev-field label { font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 3px; }
+  table.tf { width: 100%; border-collapse: collapse; font-size: 10px; }
+  table.tf th { background: #1A2B4A; color: #fff; padding: 6px 8px; font-weight: 500; text-align: right; }
+  table.tf th:first-child { text-align: left; }
+  table.tf td { padding: 4px 8px; border-bottom: 0.5px solid var(--border-light); text-align: right; }
+  table.tf td:first-child { text-align: left; }
+  table.tf tr:nth-child(even) { background: var(--bg-secondary); }
+  .disc-pill { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 500; margin: 2px; }
+  .empty { text-align: center; padding: 40px; color: var(--text-secondary); font-size: 13px; }
+  @media (max-width: 600px) { .ev-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hdr">
+    <h1>Hotel Lincoln — Gestor de eventos</h1>
+    <span id="hdr-date"></span>
+  </div>
+
+  <div class="body-wrap">
+
+    <div class="nuevo-form" id="nuevoForm">
+      <h3>Agregar nuevo evento</h3>
+      <div class="form-grid">
+        <div><label>Nombre</label><input type="text" id="n-nombre" placeholder="Nombre del evento"></div>
+        <div><label>Fecha</label><input type="date" id="n-fecha"></div>
+        <div><label>Venue</label><input type="text" id="n-venue" placeholder="Atanasio, Plaza Mayor..."></div>
+        <div><label>Impacto</label>
+          <select id="n-impacto">
+            <option value="maximo">Maximo — Feria Flores</option>
+            <option value="alto" selected>Alto — Atanasio</option>
+            <option value="medio">Medio — Plaza Mayor</option>
+            <option value="bajo">Bajo — Indoor pequeno</option>
+          </select></div>
+        <div><label>Fuente</label><input type="text" id="n-fuente" placeholder="songkick.com..."></div>
+      </div>
+      <div class="form-btns">
+        <button class="btn-ok" onclick="agregarEvento()">Agregar</button>
+        <button class="btn-cancel" onclick="document.getElementById('nuevoForm').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="top-bar">
+      <div class="filters" id="filters">
+        <button class="filt-btn active" onclick="setFiltro('todos',this)">Todos</button>
+        <button class="filt-btn" onclick="setFiltro('activos',this)">Proximos 60d</button>
+        <button class="filt-btn" onclick="setFiltro('alto',this)">Alto / Maximo</button>
+        <button class="filt-btn" onclick="setFiltro('medio',this)">Medio</button>
+      </div>
+      <button class="btn-add" onclick="document.getElementById('nuevoForm').style.display='block'">+ Nuevo evento</button>
+    </div>
+
+    <div id="eventosContainer"></div>
+  </div>
+</div>
+
+<script>
+const TF={
+  "Doble 1p":   {bs:305000,as:430000,fe:750000},
+  "Doble 2p":   {bs:330000,as:480000,fe:820000},
+  "Doble2c 1p": {bs:340000,as:455000,fe:860000},
+  "Doble2c 2p": {bs:380000,as:510000,fe:920000},
+  "2CG 2p":     {bs:430000,as:570000,fe:980000},
+  "2CG 3p":     {bs:490000,as:645000,fe:1060000},
+  "2CG 4p":     {bs:540000,as:720000,fe:1140000},
+  "Suite Jr 1p":{bs:490000,as:750000,fe:1065000},
+  "Suite Jr 2p":{bs:510000,as:780000,fe:1210000},
+};
+const IMP_MULT={maximo:{s:2.3,f:2.6},alto:{s:1.40,f:1.52},medio:{s:1.15,f:1.20},bajo:{s:1.00,f:1.00}};
+const IMP_CFG={
+  maximo:{label:'Maximo — Feria',  bg:'#FADBD8',color:'#7D0000',border:'#922B21'},
+  alto:  {label:'Alto — Atanasio', bg:'#FDEBD0',color:'#7D3C00',border:'#A04000'},
+  medio: {label:'Medio — Plaza',   bg:'#FEF9E7',color:'#7D6608',border:'#BA7517'},
+  bajo:  {label:'Bajo',            bg:'#f4f6f8', color:'#5F5E5A',border:'#B4B2A9'},
+};
+const SEM_CFG={
+  pasado:   {label:'Pasado',    bg:'#f4f6f8',color:'#888'},
+  urgente:  {label:'Urgente',   bg:'#FADBD8',color:'#7D0000'},
+  critico:  {label:'Critico',   bg:'#FDEBD0',color:'#7D3C00'},
+  activo:   {label:'Activo',    bg:'#FEF9E7',color:'#7D6608'},
+  planificar:{label:'Planificar',bg:'#D5F5E3',color:'#1A5E1A'},
+  anticipar:{label:'Anticipar', bg:'#D6EAF8',color:'#154360'},
+};
+
+function parseLD(s){if(!s)return null;const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function getDias(s){if(!s)return 9999;const hoy=new Date();hoy.setHours(0,0,0,0);return Math.round((parseLD(s)-hoy)/86400000);}
+function getSem(d){if(d<0)return'pasado';if(d<=6)return'urgente';if(d<=14)return'critico';if(d<=29)return'activo';if(d<=59)return'planificar';return'anticipar';}
+function getProxRev(d){if(d<0)return'—';const hoy=new Date();const add=d<=6?1:d<=14?2:d<=29?4:7;return new Date(hoy.getTime()+add*86400000).toLocaleDateString('es-CO',{day:'2-digit',month:'short'});}
+function fmtCOP(n){return'$'+Math.round(n).toLocaleString('es-CO');}
+function r1k(n){return Math.round(n/1000)*1000;}
+
+function getAccion(dias,imp,ocup){
+  const o=ocup??0;
+  if(dias<0) return'Evento pasado. Sin accion.';
+  if(dias===0) return'Dia del evento: mantener o subir precio. NO bajar.';
+  if(dias<=6){
+    if(o>85)return'Precio maximo del mercado. Solo NR absoluto.';
+    if(o<60)return'Last-minute flexible. Bajar max 15%. Nunca volver al precio base.';
+    return'Mantener precio evento. Solo NR.';
+  }
+  if(dias<=14){
+    if(o>70)return'Subir 10%-20%. Demanda confirmada.';
+    if(o<40)return'Revision final. Bajar max 20% del precio evento. No mas.';
+    return'Ajuste dinamico activo. Monitorear diariamente.';
+  }
+  if(dias<=29){
+    if(o>40)return'Subir 5%-10%. Buen pickup.';
+    if(o<25)return'Precio posiblemente alto. Bajar max 15%.';
+    return'Ajuste dinamico. Monitorear semanal.';
+  }
+  if(dias<=59){
+    if((imp==='maximo'||imp==='alto')&&o<15)return'Precio posiblemente alto. Bajar max 10%.';
+    return'Monitorear pickup semanal. Mantener precio evento.';
+  }
+  return'Cargar precio evento preventivo. Solo NR desde el primer dia.';
+}
+
+function calcTarifas(imp,fecha){
+  const d=parseLD(fecha);
+  const esFin=d?[5,6].includes(d.getDay()):false;
+  const m=IMP_MULT[imp]||IMP_MULT.bajo;
+  const mult=esFin?m.f:m.s;
+  return Object.entries(TF).map(([tipo,t])=>{
+    let rack=imp==='maximo'?t.fe:r1k((esFin?t.as*1.22:t.as)*mult);
+    const neto=r1k(rack*0.85);
+    const directa=imp==='maximo'?r1k(t.as*1.22):r1k(rack*0.90);
+    return{tipo,rack,neto,directa};
+  });
+}
+
+function getDesc(imp){
+  const esAlto=imp==='maximo'||imp==='alto';
+  return[
+    {ok:!esAlto,lbl:'Genius'},
+    {ok:false,lbl:'Escapada'},
+    {ok:true,lbl:'Nacional -10%'},
+    {ok:true,lbl:'Intl. -10%'},
+    {ok:true,lbl:'Movil -10%'},
+  ];
+}
+
+let eventos=[
+  {id:'E001',nombre:'Feid — Concierto',fecha:'2026-06-20',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'songkick.com'},
+  {id:'E002',nombre:'Carlos Vives',fecha:'2026-05-27',venue:'Atanasio Girardot',impacto:'alto',ocup:10,fuente:'ticketmaster.co'},
+  {id:'E003',nombre:'Colombiamoda 2026',fecha:'2026-07-03',venue:'Plaza Mayor',impacto:'medio',ocup:null,fuente:'colombiamoda.com'},
+  {id:'E004',nombre:'Altavoz Ciudad',fecha:'2026-06-04',venue:'Atanasio Girardot',impacto:'medio',ocup:30,fuente:'visitarmedellin.com'},
+  {id:'E005',nombre:'FERIA DE LAS FLORES',fecha:'2026-07-31',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
+  {id:'E006',nombre:'Desfile Silleteros (Feria)',fecha:'2026-08-07',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
+  {id:'E007',nombre:'Arctic Monkeys',fecha:'2026-06-19',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'songkick.com'},
+  {id:'E008',nombre:'Arcangel',fecha:'2026-06-17',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'songkick.com'},
+  {id:'E009',nombre:'Fiesta Libro y Cultura',fecha:'2026-06-03',venue:'Plaza Mayor',impacto:'bajo',ocup:null,fuente:'ferialibrosmedellin.com'},
+  {id:'E010',nombre:'Festival Altavoz Intl.',fecha:'2026-06-20',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'festivaltlvz.com'},
+  {id:'E011',nombre:'Festiafro',fecha:'2026-06-27',venue:'Atanasio Girardot',impacto:'medio',ocup:null,fuente:'visitarmedellin.com'},
+  {id:'E012',nombre:'Rivales Festival',fecha:'2026-06-03',venue:'Atanasio Girardot',impacto:'medio',ocup:null,fuente:'songkick.com'},
+  {id:'E013',nombre:'Morat',fecha:'2026-05-30',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'ticketmaster.co'},
+  {id:'E014',nombre:'Festival La Solar',fecha:'2026-05-02',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'lasolarfest.com'},
+  {id:'E015',nombre:'Festival Altavoz Nov.',fecha:'2026-11-06',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'festivaltlvz.com'},
+];
+
+let filtroActual='todos',expandedId=null;
+
+function setFiltro(f,btn){filtroActual=f;document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+
+function updateEvento(id,campo,val){eventos=eventos.map(e=>e.id===id?{...e,[campo]:val}:e);render();}
+
+function agregarEvento(){
+  const nombre=document.getElementById('n-nombre').value.trim();
+  const fecha=document.getElementById('n-fecha').value;
+  if(!nombre||!fecha)return;
+  const newId='E'+String(eventos.length+1).padStart(3,'0');
+  eventos.push({id:newId,nombre,fecha,venue:document.getElementById('n-venue').value,impacto:document.getElementById('n-impacto').value,ocup:null,fuente:document.getElementById('n-fuente').value});
+  document.getElementById('nuevoForm').style.display='none';
+  ['n-nombre','n-venue','n-fuente'].forEach(id=>document.getElementById(id).value='');
+  render();
+}
+
+function render(){
+  const filtrados=eventos
+    .filter(e=>{
+      const d=getDias(e.fecha);
+      if(filtroActual==='activos') return d>=0&&d<=60;
+      if(filtroActual==='alto') return e.impacto==='alto'||e.impacto==='maximo';
+      if(filtroActual==='medio') return e.impacto==='medio';
+      return true;
+    })
+    .sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+
+  const cont=document.getElementById('eventosContainer');
+  if(filtrados.length===0){cont.innerHTML='<div class="empty">No hay eventos en este filtro.</div>';return;}
+
+  cont.innerHTML='';
+  filtrados.forEach(ev=>{
+    const dias=getDias(ev.fecha),sem=getSem(dias);
+    const accion=getAccion(dias,ev.impacto,ev.ocup);
+    const proxRev=getProxRev(dias);
+    const tarifas=calcTarifas(ev.impacto,ev.fecha);
+    const descs=getDesc(ev.impacto);
+    const ic=IMP_CFG[ev.impacto]||IMP_CFG.bajo;
+    const sc=SEM_CFG[sem];
+    const isExp=expandedId===ev.id;
+    const d=parseLD(ev.fecha);
+    const fechaLabel=d?d.toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'Sin fecha';
+
+    const card=document.createElement('div');
+    card.className='ev-card';
+    card.style.borderLeft=`3px solid ${ic.border}`;
+
+    let expBody='';
+    if(isExp){
+      const tfRows=tarifas.map((t,i)=>`<tr style="background:${i%2===0?'#f4f6f8':'#fff'}">
+        <td style="font-weight:${t.tipo.includes('Suite')?500:400};color:${t.tipo.includes('Suite')?'#1A2B4A':'inherit'}">${t.tipo}</td>
+        <td style="font-weight:500;color:${ic.color}">${fmtCOP(t.rack)}</td>
+        <td style="color:#6b7280">${fmtCOP(t.neto)}</td>
+        <td style="color:#1A2B4A">${fmtCOP(t.directa)}</td>
+      </tr>`).join('');
+
+      const discHtml=descs.map(d=>`<span class="disc-pill" style="background:${d.ok?'#D5F5E3':'#f4f6f8'};color:${d.ok?'#1A5E1A':'#888'}">${d.ok?'&#10003;':'&#10005;'} ${d.lbl}</span>`).join('');
+
+      expBody=`<div class="ev-body">
+        <div class="accion-box" style="background:${ic.bg}">
+          <div style="font-size:11px;font-weight:500;color:${ic.color};margin-bottom:3px">
+            Accion recomendada — ${dias<0?'Pasado':dias===0?'Hoy':dias+'d restantes'}
+          </div>
+          <div style="font-size:12px">${accion}</div>
+        </div>
+        <div class="ev-grid">
+          <div class="ev-field"><label>Impacto (cambia precios)</label>
+            <select onchange="updateEvento('${ev.id}','impacto',this.value)" onclick="event.stopPropagation()">
+              <option value="maximo"${ev.impacto==='maximo'?' selected':''}>Maximo — Feria</option>
+              <option value="alto"${ev.impacto==='alto'?' selected':''}>Alto — Atanasio</option>
+              <option value="medio"${ev.impacto==='medio'?' selected':''}>Medio — Plaza Mayor</option>
+              <option value="bajo"${ev.impacto==='bajo'?' selected':''}>Bajo</option>
+            </select></div>
+          <div class="ev-field"><label>% Ocupacion actual</label>
+            <input type="number" min="0" max="100" step="1" value="${ev.ocup??''}" placeholder="0-100"
+              onchange="updateEvento('${ev.id}','ocup',this.value===''?null:Number(this.value))" onclick="event.stopPropagation()"></div>
+          <div class="ev-field"><label>Fecha</label>
+            <input type="date" value="${ev.fecha||''}"
+              onchange="updateEvento('${ev.id}','fecha',this.value)" onclick="event.stopPropagation()"></div>
+          <div class="ev-field"><label>Fuente</label>
+            <input type="text" value="${ev.fuente||''}" placeholder="songkick.com..."
+              onchange="updateEvento('${ev.id}','fuente',this.value)" onclick="event.stopPropagation()"></div>
+        </div>
+        <div style="font-size:11px;font-weight:500;margin-bottom:6px">Tarifas recomendadas</div>
+        <div style="overflow-x:auto">
+          <table class="tf" style="min-width:380px">
+            <thead><tr>
+              <th style="text-align:left">Tipologia</th>
+              <th>Rack OTA</th><th>Neto -15%</th><th>Directa</th>
+            </tr></thead>
+            <tbody>${tfRows}</tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px">
+          <div style="font-size:10px;font-weight:500;margin-bottom:4px">Descuentos</div>
+          <div>${discHtml}</div>
+          <div style="font-size:10px;color:#6b7280;margin-top:4px;font-style:italic">
+            Nacional, Intl. y Movil siempre activos al 10% — no acumulables entre si.
+            ${ev.impacto==='maximo'?' Excluir Genius en Extranet Booking para fechas Feria.':''}
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:#6b7280">
+          Prox. revision: <b>${proxRev}</b> &nbsp;·&nbsp; Fuente: <a href="https://${ev.fuente||'#'}" target="_blank" style="color:#1A2B4A">${ev.fuente||'verificar'}</a>
+        </div>
+      </div>`;
+    }
+
+    card.innerHTML=`
+      <div class="ev-header" onclick="toggleExpand('${ev.id}')">
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:13px;font-weight:500;margin-bottom:2px">${ev.nombre}</div>
+          <div style="font-size:11px;color:#6b7280">${fechaLabel} &nbsp;·&nbsp; ${ev.venue||'—'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="badge" style="background:${ic.bg};color:${ic.color}">${ic.label}</span>
+          <span class="badge" style="background:${sc.bg};color:${sc.color}">${sc.label}</span>
+          ${dias>=0?`<span style="font-size:11px;color:#6b7280">${dias===0?'Hoy':dias+'d'}</span>`:''}
+          <span style="font-size:10px;color:#6b7280">Rev. ${proxRev}</span>
+        </div>
+      </div>
+      ${expBody}`;
+    cont.appendChild(card);
+  });
+}
+
+function toggleExpand(id){expandedId=expandedId===id?null:id;render();}
+document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+render();
+</script>
+</body>
+</html>
