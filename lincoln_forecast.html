@@ -190,15 +190,18 @@
 <script>
 const TIPOS=["Doble 1p","Doble 2p","Doble2c 1p","Doble2c 2p","2CG 2p","2CG 3p","2CG 4p","Suite Jr 1p","Suite Jr 2p"];
 const TF={
-  "Doble 1p":   {bs:305000,bf:305000,as:430000,af:430000,fe:750000,db:250000,da:380000},
-  "Doble 2p":   {bs:330000,bf:330000,as:480000,af:480000,fe:820000,db:310000,da:450000},
-  "Doble2c 1p": {bs:340000,bf:340000,as:455000,af:455000,fe:860000,db:310000,da:450000},
-  "Doble2c 2p": {bs:380000,bf:380000,as:510000,af:510000,fe:920000,db:400000,da:550000},
-  "2CG 2p":     {bs:430000,bf:430000,as:570000,af:570000,fe:980000,db:400000,da:550000},
-  "2CG 3p":     {bs:490000,bf:490000,as:645000,af:645000,fe:1060000,db:490000,da:660000},
-  "2CG 4p":     {bs:540000,bf:540000,as:720000,af:720000,fe:1140000,db:490000,da:660000},
-  "Suite Jr 1p":{bs:490000,bf:490000,as:750000,af:750000,fe:1065000,db:520000,da:750000},
-  "Suite Jr 2p":{bs:510000,bf:510000,as:780000,af:780000,fe:1210000,db:600000,da:850000},
+  // bs=BajaSem, bf=BajaFinde(=BajaSem protocolo), as=AltaSem, af=AltaFinde, fe=Feria
+  // db=DirectaBaja, da=DirectaAlta
+  // Fuente: Protocolo Tarifas Lincoln 2026 v2 — tabla Sección 1
+  "Doble 1p":   {bs:305000,bf:305000,as:430000,af:524600,  fe:750000, db:250000,da:380000},
+  "Doble 2p":   {bs:330000,bf:330000,as:480000,af:585600,  fe:820000, db:310000,da:450000},
+  "Doble2c 1p": {bs:340000,bf:340000,as:455000,af:555100,  fe:860000, db:310000,da:450000},
+  "Doble2c 2p": {bs:380000,bf:380000,as:510000,af:622200,  fe:920000, db:400000,da:550000},
+  "2CG 2p":     {bs:430000,bf:430000,as:570000,af:695400,  fe:980000, db:400000,da:550000},
+  "2CG 3p":     {bs:490000,bf:490000,as:645000,af:786900,  fe:1060000,db:490000,da:660000},
+  "2CG 4p":     {bs:540000,bf:540000,as:720000,af:878400,  fe:1140000,db:490000,da:660000},
+  "Suite Jr 1p":{bs:490000,bf:490000,as:750000,af:900000,  fe:1065000,db:520000,da:750000},
+  "Suite Jr 2p":{bs:510000,bf:510000,as:780000,af:951600,  fe:1210000,db:600000,da:850000},
 };
 
 function parseLD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
@@ -207,56 +210,86 @@ function addDays(s,n){const d=parseLD(s);d.setDate(d.getDate()+n);return dateStr
 
 function getTemp(s){
   const d=parseLD(s),m=d.getMonth()+1,day=d.getDate(),dow=d.getDay();
+  const esFin=(dow===5||dow===6);
+  // Feria: siempre su propia categoría
   if((m===7&&day>=31)||(m===8&&day<=9)) return 'feria';
-  if((m===6&&day>=20)||(m===7&&day<=10)) return 'alta';
-  if(m===10&&day>=5&&day<=11) return 'alta';
-  if(m===12) return 'alta';
-  if(m===4&&day<=15) return 'alta';
-  if(dow===5||dow===6) return 'baja-fin';
+  // T.Alta: vacaciones mitad año 20 jun–10 jul
+  if((m===6&&day>=20)||(m===7&&day<=10)) return esFin?'alta-fin':'alta';
+  // T.Alta: semana de receso 5–11 oct
+  if(m===10&&day>=5&&day<=11) return esFin?'alta-fin':'alta';
+  // T.Alta: diciembre completo
+  if(m===12) return esFin?'alta-fin':'alta';
+  // T.Alta: Semana Santa abr 1–15
+  if(m===4&&day<=15) return esFin?'alta-fin':'alta';
+  // T.Baja
+  if(esFin) return 'baja-fin';
   return 'baja-sem';
 }
 
 const TC={
-  feria:     {label:'Feria',      bg:'#FADBD8',color:'#7D0000'},
-  alta:      {label:'T. Alta',    bg:'#FDEBD0',color:'#7D3C00'},
-  'baja-fin':{label:'Baja finde', bg:'#D5F5E3',color:'#1A5E1A'},
-  'baja-sem':{label:'Baja sem.',  bg:'#D6EAF8',color:'#154360'},
+  feria:     {label:'Feria',        bg:'#FADBD8',color:'#7D0000'},
+  'alta-fin':{label:'T.Alta Finde', bg:'#F9CBA9',color:'#6B2800'},
+  alta:      {label:'T. Alta Sem.', bg:'#FDEBD0',color:'#7D3C00'},
+  'baja-fin':{label:'Baja finde',   bg:'#D5F5E3',color:'#1A5E1A'},
+  'baja-sem':{label:'Baja sem.',    bg:'#D6EAF8',color:'#154360'},
 };
 
 function getRack(tipo,temp){
   const t=TF[tipo];
-  return temp==='feria'?t.fe:temp==='alta'?t.as:temp==='baja-fin'?t.bf:t.bs;
+  if(temp==='feria')     return t.fe;
+  if(temp==='alta-fin')  return t.af;  // T.Alta finde — precio más alto que T.Alta sem
+  if(temp==='alta')      return t.as;  // T.Alta semana
+  if(temp==='baja-fin')  return t.bf;  // T.Baja finde = mismo que T.Baja sem (protocolo)
+  return t.bs;                          // T.Baja semana
 }
 function getDirecta(tipo,temp,ocup,walkin){
   const t=TF[tipo];
-  let base=(temp==='alta'||temp==='feria')?t.da:t.db;
+  let base;
+  if(temp==='feria'){
+    // Protocolo: directa Feria = tarifa T.Alta finde OTA (no tarifa Feria OTA)
+    // "El canal directo no paga comisión, hotel captura mayor margen aunque precio sea inferior al rack OTA Feria"
+    base=t.af; // T.Alta finde OTA
+  } else if(temp==='alta'||temp==='alta-fin'){
+    base=t.da; // Directa T.Alta
+  } else {
+    base=t.db; // Directa T.Baja
+  }
+  // Walk-in con ocupación >80%: +$30K (protocolo dice $20K-$30K, usamos $30K)
   if(walkin&&ocup!==null&&ocup>80) base+=30000;
   return base;
 }
 function getMult(ocup,temp){
+  // Protocolo Sección 4: el precio NUNCA baja automáticamente por baja ocupación.
+  // "Bajar precio no llena el hotel si el problema es visibilidad o contenido."
+  // Solo sube cuando hay alta demanda. Piso siempre = 1.0
   if(ocup===null) return 1;
-  if(ocup>85) return 1.20;
-  if(ocup>75) return 1.10;
-  if(ocup>65) return 1.05;
-  if(ocup>50) return 1.00;
-  if(ocup>35) return(temp==='feria'||temp==='alta')?1.00:0.95;
-  return(temp==='feria'||temp==='alta')?1.00:0.90;
+  if(ocup>85) return 1.20;  // +20%: casi lleno
+  if(ocup>75) return 1.10;  // +10%: alta demanda
+  if(ocup>65) return 1.05;  // +5%: buen ritmo
+  return 1.00;               // piso: rack base sin modificar (nunca baja)
 }
 function r1k(n){return Math.round(n/1000)*1000;}
 function fmtCOP(n){return'$'+Math.round(n).toLocaleString('es-CO');}
 
 function getDesc(temp,ocup){
-  const o=ocup??50,isFeria=temp==='feria',isAlta=temp==='alta';
-  return{
-    geniusOk:!isFeria,
-    genius:isFeria?'Excluir en Extranet':'Activo -15%',
-    escapadaOk:!isFeria&&!isAlta&&temp!=='baja-fin'&&o<50,
-    escapada:isFeria||isAlta?'Apagada':temp==='baja-fin'?'Apagada (finde)':o<50?'Activa max -10%':'No necesaria',
-    nota:isFeria?'FERIA: excluir Genius en Extranet. Solo NR. Sin descuentos OTA.':
-      isAlta&&o>75?'T. Alta alta ocupacion: Escapada apagada.':
-      o<35?'Ocupacion baja: Genius + Escapada activos. Nacional/Intl/Movil siempre.':
-      'Genius activo. Nacional, Intl y Movil siempre activos (no acumulables entre si).',
-  };
+  const o=ocup??50;
+  const isFeria   = temp==='feria';
+  const isAlta    = temp==='alta';
+  const isAltaFin = temp==='alta-fin';
+  const isBajaFin = temp==='baja-fin';
+  const esAlta    = isAlta||isAltaFin;
+  const geniusOk  = !isFeria;
+  const genius    = isFeria?'Excluir en Extranet (antes 1 mayo)':'Activo -15%';
+  const escapadaOk= !isFeria&&!esAlta&&!isBajaFin&&o<50;
+  const escapada  = isFeria||esAlta?'Apagada':
+                    isBajaFin?'Apagada (finde)':
+                    o<50?'Activa max -10%':'No necesaria';
+  const nota=isFeria
+    ?'FERIA: excluir Genius en Extranet. Solo NR. Nacional/Intl/Movil activos.'
+    :esAlta&&o>75?'T. Alta alta ocup.: Genius activo. Escapada apagada. Nacional/Intl/Movil activos.'
+    :o<40?'Ocup. baja: Genius activo. Escapada activa si T.Baja sem y ocup<50%. Nacional/Intl/Movil siempre.'
+    :'Genius activo. Nacional, Intl y Movil siempre activos al 10% (no acumulables entre si).';
+  return{geniusOk,genius,escapadaOk,escapada,nota};
 }
 
 function discPills(desc){

@@ -117,7 +117,38 @@ const TF={
   "Suite Jr 1p":{bs:490000,as:750000,fe:1065000},
   "Suite Jr 2p":{bs:510000,as:780000,fe:1210000},
 };
-const IMP_MULT={maximo:{s:2.3,f:2.6},alto:{s:1.40,f:1.52},medio:{s:1.15,f:1.20},bajo:{s:1.00,f:1.00}};
+// Precios FIJOS de la grilla aprobada por nivel de impacto (no multiplicadores)
+// Fuente: Lincoln_Protocolo_Tarifas_2026_v2
+const RACK_EVENTO={
+  // maximo = tarifas Feria
+  maximo:{
+    "Doble 1p":750000,"Doble 2p":820000,
+    "Doble2c 1p":860000,"Doble2c 2p":920000,
+    "2CG 2p":980000,"2CG 3p":1060000,"2CG 4p":1140000,
+    "Suite Jr 1p":1065000,"Suite Jr 2p":1210000
+  },
+  // alto = Atanasio (T.Alta finde aprox)
+  alto:{
+    "Doble 1p":524600,"Doble 2p":585600,
+    "Doble2c 1p":555100,"Doble2c 2p":622200,
+    "2CG 2p":695400,"2CG 3p":786900,"2CG 4p":878400,
+    "Suite Jr 1p":900000,"Suite Jr 2p":951600
+  },
+  // medio = T.Alta semana
+  medio:{
+    "Doble 1p":430000,"Doble 2p":480000,
+    "Doble2c 1p":455000,"Doble2c 2p":510000,
+    "2CG 2p":570000,"2CG 3p":645000,"2CG 4p":720000,
+    "Suite Jr 1p":750000,"Suite Jr 2p":780000
+  },
+  // bajo = precio base semana
+  bajo:{
+    "Doble 1p":305000,"Doble 2p":330000,
+    "Doble2c 1p":340000,"Doble2c 2p":380000,
+    "2CG 2p":430000,"2CG 3p":490000,"2CG 4p":540000,
+    "Suite Jr 1p":490000,"Suite Jr 2p":510000
+  }
+};
 const IMP_CFG={
   maximo:{label:'Maximo — Feria',  bg:'#FADBD8',color:'#7D0000',border:'#922B21'},
   alto:  {label:'Alto — Atanasio', bg:'#FDEBD0',color:'#7D3C00',border:'#A04000'},
@@ -166,15 +197,24 @@ function getAccion(dias,imp,ocup){
   return'Cargar precio evento preventivo. Solo NR desde el primer dia.';
 }
 
-function calcTarifas(imp,fecha){
-  const d=parseLD(fecha);
-  const esFin=d?[5,6].includes(d.getDay()):false;
-  const m=IMP_MULT[imp]||IMP_MULT.bajo;
-  const mult=esFin?m.f:m.s;
-  return Object.entries(TF).map(([tipo,t])=>{
-    let rack=imp==='maximo'?t.fe:r1k((esFin?t.as*1.22:t.as)*mult);
+function getMult(ocup){
+  // Multiplicador por ocupación para eventos — solo sube, nunca baja del precio del evento
+  if(ocup===null||ocup===undefined) return 1;
+  if(ocup>85) return 1.20;
+  if(ocup>70) return 1.10;
+  if(ocup>55) return 1.05;
+  return 1.00; // El precio de evento es el piso — nunca se baja
+}
+
+function calcTarifas(imp,fecha,ocup){
+  const racks=RACK_EVENTO[imp]||RACK_EVENTO.bajo;
+  const mult=getMult(ocup);
+  return Object.keys(TF).map(tipo=>{
+    const baseRack=racks[tipo]||TF[tipo].bs;
+    const rack=r1k(baseRack*mult);
     const neto=r1k(rack*0.85);
-    const directa=imp==='maximo'?r1k(t.as*1.22):r1k(rack*0.90);
+    // Directa en evento = precio OTA T.Alta finde (sin llegar al precio Feria para impacto maximo)
+    const directa=imp==='maximo'?TF[tipo].da||TF[tipo].db:r1k(rack*0.92);
     return{tipo,rack,neto,directa};
   });
 }
@@ -244,7 +284,7 @@ function render(){
     const dias=getDias(ev.fecha),sem=getSem(dias);
     const accion=getAccion(dias,ev.impacto,ev.ocup);
     const proxRev=getProxRev(dias);
-    const tarifas=calcTarifas(ev.impacto,ev.fecha);
+    const tarifas=calcTarifas(ev.impacto,ev.fecha,ev.ocup);
     const descs=getDesc(ev.impacto);
     const ic=IMP_CFG[ev.impacto]||IMP_CFG.bajo;
     const sc=SEM_CFG[sem];
@@ -327,6 +367,11 @@ function render(){
           <span class="badge" style="background:${sc.bg};color:${sc.color}">${sc.label}</span>
           ${dias>=0?`<span style="font-size:11px;color:#6b7280">${dias===0?'Hoy':dias+'d'}</span>`:''}
           <span style="font-size:10px;color:#6b7280">Rev. ${proxRev}</span>
+          <button onclick="event.stopPropagation();eliminarEvento('${ev.id}')"
+            style="margin-left:4px;padding:3px 10px;border:0.5px solid #E24B4A;border-radius:4px;background:transparent;color:#E24B4A;cursor:pointer;font-size:10px;font-family:var(--font);opacity:0.7"
+            title="Eliminar evento">
+            Eliminar
+          </button>
         </div>
       </div>
       ${expBody}`;
@@ -334,6 +379,13 @@ function render(){
   });
 }
 
+function eliminarEvento(id){
+  if(confirm('Eliminar este evento del sistema? Esta accion no se puede deshacer.')){
+    eventos=eventos.filter(e=>e.id!==id);
+    if(expandedId===id) expandedId=null;
+    render();
+  }
+}
 function toggleExpand(id){expandedId=expandedId===id?null:id;render();}
 document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
 render();
