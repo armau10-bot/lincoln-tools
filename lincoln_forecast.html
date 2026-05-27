@@ -5,214 +5,158 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hotel Lincoln — Forecast Operativo</title>
 <style>
-  :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f4f6f8;
-    --bg-tertiary: #eef0f3;
-    --text-primary: #1a1a2e;
-    --text-secondary: #6b7280;
-    --border-light: rgba(0,0,0,0.10);
-    --border-mid: rgba(0,0,0,0.18);
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-mono: 'SF Mono', 'Fira Code', monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: var(--font);
-    font-size: 13px;
-    color: var(--text-primary);
-    background: #f0f2f5;
-    min-height: 100vh;
-    padding: 24px 16px;
-  }
-  .container { max-width: 960px; margin: 0 auto; }
-  .hdr {
-    background: #1A2B4A;
-    color: #fff;
-    padding: 16px 20px;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .hdr h1 { font-size: 15px; font-weight: 500; color: #fff; }
-  .hdr span { font-size: 11px; color: #8eb4d4; }
-  .body-wrap {
-    background: var(--bg-primary);
-    border: 0.5px solid var(--border-light);
-    border-top: none;
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-    padding: 16px;
-  }
-  .paste-panel {
-    background: var(--bg-secondary);
-    border: 0.5px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-  .paste-panel h3 { font-size: 12px; font-weight: 500; margin-bottom: 6px; }
-  .paste-panel p { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
-  textarea {
-    width: 100%; font-size: 11px; padding: 8px;
-    border: 0.5px solid var(--border-mid);
-    border-radius: var(--radius-md);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    resize: vertical;
-    font-family: var(--font-mono);
-    line-height: 1.6;
-  }
-  .btn-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
-  button {
-    padding: 6px 18px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: var(--font);
-    transition: opacity 0.15s;
-  }
-  button:hover { opacity: 0.85; }
-  .btn-primary { background: #1A2B4A; color: #fff; border: none; }
-  .btn-secondary { background: transparent; color: var(--text-primary); border: 0.5px solid var(--border-mid); }
-  .msg { font-size: 11px; color: #1A5E1A; }
-  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-  .controls label { font-size: 11px; color: var(--text-secondary); margin-right: 4px; }
-  input[type=date], select {
-    font-size: 12px; padding: 5px 8px;
-    border: 0.5px solid var(--border-mid);
-    border-radius: var(--radius-md);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: var(--font);
-  }
-  .info-bar {
-    background: #EAF3DE;
-    border-radius: var(--radius-md);
-    padding: 7px 12px;
-    font-size: 10px;
-    color: #3B6D11;
-    margin-bottom: 12px;
-  }
-  .kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
-  .kpi { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px 12px; }
-  .kpi-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
-  .kpi-val { font-size: 15px; font-weight: 500; }
-  .tabs { display: flex; gap: 2px; background: var(--bg-secondary); border-radius: var(--radius-md); padding: 3px; margin-bottom: 12px; width: fit-content; }
-  .tab { padding: 5px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; background: transparent; color: var(--text-secondary); font-family: var(--font); }
-  .tab.active { background: var(--bg-primary); color: var(--text-primary); box-shadow: 0 0 0 0.5px var(--border-light); }
-  .scroll-wrap { max-height: 540px; overflow-y: auto; border: 0.5px solid var(--border-light); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
-  thead th { background: #1A2B4A; color: #fff; padding: 9px 6px; text-align: center; font-weight: 500; font-size: 10px; position: sticky; top: 0; z-index: 2; }
-  thead th:first-child { text-align: left; width: 90px; }
-  thead th:nth-child(2) { width: 84px; }
-  thead th:nth-child(3) { width: 80px; }
-  td { padding: 6px; border-bottom: 0.5px solid var(--border-light); text-align: center; vertical-align: middle; }
-  td:first-child { text-align: left; font-weight: 500; }
-  tbody tr:hover td { background: var(--bg-secondary) !important; }
-  .badge { display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 600; }
-  .bar-wrap { display: flex; align-items: center; gap: 5px; }
-  input[type=number] {
-    width: 48px; padding: 2px 4px; font-size: 11px; text-align: center;
-    border: 0.5px solid var(--border-mid); border-radius: 4px;
-    background: var(--bg-primary); color: var(--text-primary);
-    font-family: var(--font);
-  }
-  .exp-inner {
-    padding: 12px; border-radius: var(--radius-md);
-    background: var(--bg-primary); border: 0.5px solid var(--border-light);
-    margin: 4px 0 8px;
-  }
-  .exp-inner table th {
-    background: #1A2B4A; color: #fff; position: static;
-  }
-  .disc-pill { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 500; margin: 2px; }
-  .hint { font-size: 10px; color: var(--text-secondary); margin-top: 8px; text-align: center; }
-  @media (max-width: 600px) {
-    .kpis { grid-template-columns: repeat(2,1fr); }
-    .controls { flex-direction: column; align-items: flex-start; }
-  }
+:root{--bg:#fff;--bg2:#f4f6f8;--bg3:#eef0f3;--tx:#1a1a2e;--tx2:#6b7280;--bd:rgba(0,0,0,0.10);--bd2:rgba(0,0,0,0.18);--r:8px;--r2:12px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SF Mono','Fira Code',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:13px;color:var(--tx);background:#edf0f5;min-height:100vh;padding:20px 14px}
+.wrap{max-width:980px;margin:0 auto}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#0d1f3c 0%,#1A2B4A 60%,#1e3a5f 100%);border-radius:var(--r2) var(--r2) 0 0;display:flex;align-items:stretch}
+.hdr-logo{background:rgba(201,168,76,0.15);border-right:1px solid rgba(201,168,76,0.3);padding:14px 20px;display:flex;align-items:center;flex-shrink:0}
+.logo-name{font-family:Georgia,serif;font-size:17px;font-weight:700;color:#C9A84C;letter-spacing:3px;line-height:1}
+.logo-sub{font-size:7px;color:rgba(201,168,76,0.7);letter-spacing:4px;margin-top:2px;text-align:center}
+.logo-line{width:28px;height:1px;background:#C9A84C;margin:4px auto}
+.logo-city{font-size:6px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-align:center}
+.hdr-title{padding:14px 18px;flex:1}
+.hdr-label{font-size:7px;color:#C9A84C;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px}
+.hdr-h1{font-size:15px;font-weight:400;color:#fff;letter-spacing:.3px}
+.hdr-desc{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px}
+.hdr-date{padding:14px 18px;text-align:right;display:flex;flex-direction:column;justify-content:center}
+.hdr-date-lbl{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px}
+.hdr-date-val{font-size:12px;color:#C9A84C;font-weight:500;margin-top:2px}
+
+/* BODY */
+.body{background:var(--bg);border:0.5px solid var(--bd);border-top:none;border-radius:0 0 var(--r2) var(--r2);padding:16px}
+
+/* PASTE PANEL */
+.paste-panel{background:var(--bg2);border:0.5px solid var(--bd);border-radius:var(--r2);padding:14px;margin-bottom:14px}
+.paste-panel h3{font-size:12px;font-weight:500;margin-bottom:5px}
+.paste-panel p{font-size:11px;color:var(--tx2);margin-bottom:8px}
+textarea{width:100%;font-size:11px;padding:8px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--tx);resize:vertical;font-family:var(--mono);line-height:1.5}
+.btn-row{display:flex;gap:8px;margin-top:8px;align-items:center}
+button{padding:6px 18px;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:500;font-family:var(--font);transition:opacity .15s}
+button:hover{opacity:.85}
+.btn-primary{background:#1A2B4A;color:#fff;border:none}
+.btn-sec{background:transparent;color:var(--tx);border:0.5px solid var(--bd2)}
+.msg{font-size:11px;color:#1A5E1A}
+
+/* CONTROLS */
+.controls{display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.controls label{font-size:11px;color:var(--tx2);margin-right:4px}
+input[type=date],select{font-size:12px;padding:5px 8px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--tx);font-family:var(--font)}
+
+/* INFO BAR */
+.info-bar{background:linear-gradient(90deg,#EAF3DE,#F0F7E8);border-radius:var(--r);border-left:3px solid #2E7D32;padding:7px 12px;font-size:10px;color:#3B6D11;margin-bottom:12px}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:10px 12px}
+.kpi-lbl{font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.kpi-val{font-size:15px;font-weight:500}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--bg2);border-radius:var(--r);padding:3px;margin-bottom:12px;width:fit-content}
+.tab{padding:5px 16px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:500;background:transparent;color:var(--tx2);font-family:var(--font)}
+.tab.active{background:var(--bg);color:var(--tx);box-shadow:0 0 0 0.5px var(--bd)}
+
+/* TABLE */
+.scroll{max-height:540px;overflow-y:auto;border:0.5px solid var(--bd);border-radius:0 0 var(--r2) var(--r2)}
+table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+thead th{background:#1A2B4A;color:#fff;padding:9px 7px;text-align:center;font-weight:500;font-size:10px;position:sticky;top:0;z-index:2}
+thead th:first-child{text-align:left;width:88px}
+thead th:nth-child(2){width:86px}
+thead th:nth-child(3){width:90px}
+thead th:nth-child(4),thead th:nth-child(5){width:90px}
+thead th:last-child{text-align:left;min-width:200px}
+td{padding:6px 7px;border-bottom:0.5px solid var(--bd);text-align:center;vertical-align:top}
+td:first-child{text-align:left;font-weight:500}
+tbody tr:hover td{background:var(--bg2)!important}
+.badge{display:inline-block;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600}
+.bar-wrap{display:flex;align-items:center;gap:4px}
+input[type=number]{width:48px;padding:2px 4px;font-size:11px;text-align:center;border:0.5px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);font-family:var(--font)}
+
+/* ALERT ROWS */
+.alert-row td{padding:5px 14px;border-bottom:1px solid rgba(0,0,0,0.06)}
+
+/* EXPANDED */
+.exp-inner{padding:12px;border-radius:var(--r);background:var(--bg);border:0.5px solid var(--bd);margin:4px 0 8px}
+.exp-inner table thead th{background:#1A2B4A;position:static}
+.disc-pill{display:inline-block;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:500;margin:2px}
+.hint{font-size:10px;color:var(--tx2);margin-top:8px;text-align:center}
+
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}.controls{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
-  <div class="hdr" style="background:linear-gradient(135deg,#0d1f3c 0%,#1A2B4A 60%,#1e3a5f 100%);padding:0">
-    <div style="display:flex;align-items:stretch;width:100%">
-      <!-- Logo zone -->
-      <div style="background:rgba(201,168,76,0.15);border-right:1px solid rgba(201,168,76,0.3);padding:14px 22px;display:flex;align-items:center;flex-shrink:0">
-        <div style="text-align:center">
-          <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#C9A84C;letter-spacing:3px;line-height:1">LINCOLN</div>
-          <div style="font-size:7px;color:rgba(201,168,76,0.7);letter-spacing:4px;margin-top:2px">HOTEL</div>
-          <div style="width:32px;height:1px;background:#C9A84C;margin:5px auto"></div>
-          <div style="font-size:6px;color:rgba(255,255,255,0.4);letter-spacing:2px">LAURELES</div>
-        </div>
-      </div>
-      <!-- Title zone -->
-      <div style="padding:14px 20px;flex:1">
-        <div style="font-size:7px;color:#C9A84C;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px">Revenue Management</div>
-        <h1 style="font-size:14px;font-weight:400;color:#fff;margin:0;letter-spacing:0.3px">Forecast Operativo — 30 Días</h1>
-        <div style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px">Rack OTA · Directa · Alertas de parametrización</div>
-      </div>
-      <!-- Date zone -->
-      <div style="padding:14px 20px;text-align:right;display:flex;flex-direction:column;justify-content:center">
-        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px">HOY</div>
-        <div id="hdr-date" style="font-size:12px;color:#C9A84C;font-weight:500"></div>
-      </div>
+<div class="hdr">
+  <div class="hdr-logo">
+    <div>
+      <div class="logo-name">LINCOLN</div>
+      <div class="logo-sub">HOTEL</div>
+      <div class="logo-line"></div>
+      <div class="logo-city">LAURELES</div>
     </div>
   </div>
-
-  <div class="body-wrap">
-
-    <div class="paste-panel">
-      <h3>Pega aqui el bloque de ocupacion que te dio Claude</h3>
-      <p>Sube la foto del informe Zeus a Claude, copia el bloque que te devuelve y pegalo aqui. Formato: <code>YYYY-MM-DD:ocupacion</code> una linea por dia.</p>
-      <textarea id="pasteInput" rows="6" placeholder="2026-05-25:22&#10;2026-05-26:29&#10;2026-05-27:24&#10;..."></textarea>
-      <div class="btn-row">
-        <button class="btn-primary" onclick="aplicarPaste()">Aplicar datos</button>
-        <button class="btn-secondary" onclick="limpiarTodo()">Limpiar</button>
-        <span class="msg" id="pasteMsg"></span>
-      </div>
-    </div>
-
-    <div class="controls">
-      <div><label>Inicio del periodo:</label>
-        <input type="date" id="startDate"></div>
-      <div><label>Tipologia activa:</label>
-        <select id="tipoSel"></select></div>
-      <div style="margin-left:auto;font-size:11px;color:var(--text-secondary)">
-        O edita Ocup% manualmente fila a fila
-      </div>
-    </div>
-
-    <div class="info-bar">
-      <b>Temporadas:</b> Feria 31 jul–9 ago &nbsp;·&nbsp; Vacaciones 20 jun–10 jul &nbsp;·&nbsp; Semana Santa abr 1–15 &nbsp;·&nbsp; Receso 5–11 oct &nbsp;·&nbsp; Diciembre completo &nbsp;·&nbsp; Resto = T.Baja &nbsp;·&nbsp; Finde siempre diferenciado
-    </div>
-
-    <div class="kpis" id="kpis"></div>
-
-    <div class="tabs">
-      <button class="tab active" onclick="setTab('otas',this)">OTAs — Rack Omnibees</button>
-      <button class="tab" onclick="setTab('directa',this)">Directa / Walk-in</button>
-    </div>
-
-    <div class="scroll-wrap">
-      <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
-    </div>
-    <p class="hint">Clic en cualquier fila para ver todas las tipologias y descuentos del dia</p>
-
+  <div class="hdr-title">
+    <div class="hdr-label">Revenue Management</div>
+    <div class="hdr-h1">Forecast Operativo — 30 Días</div>
+    <div class="hdr-desc">Rack OTA · Directa · Alertas de parametrización</div>
+  </div>
+  <div class="hdr-date">
+    <div class="hdr-date-lbl">HOY</div>
+    <div class="hdr-date-val" id="hdr-date"></div>
   </div>
 </div>
 
+<div class="body">
+
+  <div class="paste-panel">
+    <h3>Pega aquí el bloque de ocupación que te dio Claude</h3>
+    <p>Sube la foto del informe Zeus a Claude, copia el bloque que te devuelve y pégalo aquí. Formato: <code>YYYY-MM-DD:ocupacion</code> una línea por día.</p>
+    <textarea id="pasteInput" rows="5" placeholder="2026-05-25:22&#10;2026-05-26:29&#10;2026-05-27:24&#10;..."></textarea>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="aplicarPaste()">Aplicar datos</button>
+      <button class="btn-sec" onclick="limpiarTodo()">Limpiar</button>
+      <span class="msg" id="pasteMsg"></span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div><label>Inicio:</label><input type="date" id="startDate"></div>
+    <div><label>Tipología:</label><select id="tipoSel"></select></div>
+    <div style="margin-left:auto;font-size:11px;color:var(--tx2)">O edita Ocup% manualmente fila a fila</div>
+  </div>
+
+  <div class="info-bar">
+    <b>Temporadas automáticas:</b>
+    Feria 31 jul–9 ago · Vacaciones 20 jun–10 jul · Semana Santa abr 1–15 · Receso 5–11 oct · Diciembre completo · Resto = T.Baja · Finde siempre diferenciado
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('otas',this)">OTAs — Rack Omnibees</button>
+    <button class="tab" onclick="setTab('directa',this)">Directa / Walk-in</button>
+  </div>
+
+  <div class="scroll">
+    <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+  </div>
+  <p class="hint">Clic en cualquier fila para ver todas las tipologías y descuentos completos del día</p>
+
+</div>
+</div>
+
 <script>
-const TIPOS=["Doble 1p","Doble 2p","Doble2c 1p","Doble2c 2p","2CG 2p","2CG 3p","2CG 4p","Suite Jr 1p","Suite Jr 2p"];
-const TF={
-  // bs=T.BajaSem · bf=T.BajaFinde · as=T.AltaSem · af=T.AltaFinde · fe=Feria
-  // db=DirectaBaja · da=DirectaAlta
-  // Fuente: Protocolo Tarifas Lincoln 2026 v2 — Sección 1, tabla aprobada
+// ─── DATOS ────────────────────────────────────────────────────────────
+const TIPOS = ["Doble 1p","Doble 2p","Doble2c 1p","Doble2c 2p","2CG 2p","2CG 3p","2CG 4p","Suite Jr 1p","Suite Jr 2p"];
+
+// bs=T.BajaSem · bf=T.BajaFinde · as=T.AltaSem · af=T.AltaFinde · fe=Feria
+// db=DirectaBaja · da=DirectaAlta
+// Fuente: Protocolo Tarifas Lincoln 2026 v2
+const TF = {
   "Doble 1p":   {bs:305000,bf:380000,as:430000,af:524600,  fe:750000, db:250000,da:380000},
   "Doble 2p":   {bs:330000,bf:428000,as:480000,af:585600,  fe:820000, db:310000,da:450000},
   "Doble2c 1p": {bs:340000,bf:415000,as:455000,af:555100,  fe:860000, db:310000,da:450000},
@@ -224,234 +168,173 @@ const TF={
   "Suite Jr 2p":{bs:510000,bf:732000,as:800000,af:951600,  fe:1210000,db:600000,da:850000},
 };
 
-function parseLD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
-function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function addDays(s,n){const d=parseLD(s);d.setDate(d.getDate()+n);return dateStr(d);}
-
-function getTemp(s){
-  const d=parseLD(s),m=d.getMonth()+1,day=d.getDate(),dow=d.getDay();
-  const esFin=(dow===5||dow===6);
-  // Feria: siempre su propia categoría
-  if((m===7&&day>=31)||(m===8&&day<=9)) return 'feria';
-  // T.Alta: vacaciones mitad año 20 jun–10 jul
-  if((m===6&&day>=20)||(m===7&&day<=10)) return esFin?'alta-fin':'alta';
-  // T.Alta: semana de receso 5–11 oct
-  if(m===10&&day>=5&&day<=11) return esFin?'alta-fin':'alta';
-  // T.Alta: diciembre completo
-  if(m===12) return esFin?'alta-fin':'alta';
-  // T.Alta: Semana Santa abr 1–15
-  if(m===4&&day<=15) return esFin?'alta-fin':'alta';
-  // T.Baja
-  if(esFin) return 'baja-fin';
-  return 'baja-sem';
-}
-
-const TC={
+// Colores por categoría de temporada
+const TC = {
   feria:     {label:'Feria',        bg:'#FADBD8',color:'#7D0000'},
   'alta-fin':{label:'T.Alta Finde', bg:'#F9CBA9',color:'#6B2800'},
-  alta:      {label:'T. Alta Sem.', bg:'#FDEBD0',color:'#7D3C00'},
+  alta:      {label:'T.Alta Sem.',  bg:'#FDEBD0',color:'#7D3C00'},
   'baja-fin':{label:'Baja finde',   bg:'#D5F5E3',color:'#1A5E1A'},
   'baja-sem':{label:'Baja sem.',    bg:'#D6EAF8',color:'#154360'},
 };
 
+// ─── FECHAS ───────────────────────────────────────────────────────────
+function parseLD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(s,n){const d=parseLD(s);d.setDate(d.getDate()+n);return dateStr(d);}
+
+// ─── TEMPORADAS ───────────────────────────────────────────────────────
+function getTemp(s){
+  const d=parseLD(s),m=d.getMonth()+1,day=d.getDate(),dow=d.getDay();
+  const esFin=(dow===5||dow===6);
+  // 1. Feria (siempre primero)
+  if((m===7&&day>=31)||(m===8&&day<=9)) return 'feria';
+  // 2. T.Alta específicas
+  if((m===6&&day>=20)||(m===7&&day<=10)) return esFin?'alta-fin':'alta'; // Vacaciones mitad año
+  if(m===10&&day>=5&&day<=11)            return esFin?'alta-fin':'alta'; // Receso escolar
+  if(m===12)                             return esFin?'alta-fin':'alta'; // Diciembre completo
+  if(m===4&&day<=15)                     return esFin?'alta-fin':'alta'; // Semana Santa
+  // 3. T.Baja (diferencia finde)
+  if(esFin) return 'baja-fin';
+  return 'baja-sem';
+}
+
+// ─── PRECIOS ──────────────────────────────────────────────────────────
 function getRack(tipo,temp){
   const t=TF[tipo];
-  if(temp==='feria')     return t.fe;
-  if(temp==='alta-fin')  return t.af;  // T.Alta finde — precio más alto que T.Alta sem
-  if(temp==='alta')      return t.as;  // T.Alta semana
-  if(temp==='baja-fin')  return t.bf;  // T.Baja finde = mismo que T.Baja sem (protocolo)
-  return t.bs;                          // T.Baja semana
+  if(temp==='feria')    return t.fe;
+  if(temp==='alta-fin') return t.af;
+  if(temp==='alta')     return t.as;
+  if(temp==='baja-fin') return t.bf;
+  return t.bs;
 }
+
+// Multiplicador por ocupación — protocolo: NUNCA baja, solo sube
+function getMult(ocup){
+  if(ocup===null) return 1;
+  if(ocup>85) return 1.175; // +15–20% → usamos punto medio
+  if(ocup>75) return 1.10;
+  if(ocup>65) return 1.05;
+  return 1.00; // piso — nunca baja
+}
+
 function getDirecta(tipo,temp,ocup,walkin){
   const t=TF[tipo];
   let base;
-  if(temp==='feria'){
-    // Protocolo: directa Feria = tarifa T.Alta finde OTA (no tarifa Feria OTA)
-    // "El canal directo no paga comisión, hotel captura mayor margen aunque precio sea inferior al rack OTA Feria"
-    base=t.af; // T.Alta finde OTA
-  } else if(temp==='alta'||temp==='alta-fin'){
-    base=t.da; // Directa T.Alta
-  } else {
-    base=t.db; // Directa T.Baja
-  }
-  // Walk-in con ocupación >80%: +$30K (protocolo dice $20K-$30K, usamos $30K)
-  if(walkin&&ocup!==null&&ocup>80) base+=30000;
+  if(temp==='feria')                         base=t.af;  // Protocolo: directa Feria = T.Alta finde OTA
+  else if(temp==='alta'||temp==='alta-fin')  base=t.da;  // T.Alta directa
+  else                                        base=t.db;  // T.Baja directa
+  if(walkin&&ocup!==null&&ocup>80) base+=30000;           // Walk-in +$30K si ocup>80%
   return base;
 }
-function getMult(ocup,temp){
-  // Protocolo Sección 4: el precio NUNCA baja automáticamente por baja ocupación.
-  // "Bajar precio no llena el hotel si el problema es visibilidad o contenido."
-  // Solo sube cuando hay alta demanda. Piso siempre = 1.0
-  if(ocup===null) return 1;
-  if(ocup>85) return 1.20;  // +20%: casi lleno
-  if(ocup>75) return 1.10;  // +10%: alta demanda
-  if(ocup>65) return 1.05;  // +5%: buen ritmo
-  return 1.00;               // piso: rack base sin modificar (nunca baja)
-}
-function r1k(n){return Math.round(n/1000)*1000;}
 
-function getRecomendacion(tipo, temp, ocup, rack) {
-  // Protocolo Sección 4: reglas de ajuste de rack según ocupación
-  // Aplica sobre el rack de temporada ya calculado
-  const o = ocup ?? null;
-  
-  if (o === null) return {
-    accion: 'Ingresar % ocupación',
-    precioSugerido: null,
-    nivel: 'info',
-    cambio: false,
-  };
-
-  // Rack base de la temporada actual (sin multiplicador)
-  const t = TF[tipo];
-  let rackBase;
-  if      (temp==='feria')    rackBase = t.fe;
-  else if (temp==='alta-fin') rackBase = t.af;
-  else if (temp==='alta')     rackBase = t.as;
-  else if (temp==='baja-fin') rackBase = t.bf;
-  else                         rackBase = t.bs;
-
-  // Aplicar regla de ocupación
-  let mult = 1.0, nivel = 'ok', accion = '', cambio = false;
-
-  if (o > 85) {
-    mult = 1.175; // punto medio del rango 15-20%
-    nivel = 'critico';
-    accion = 'SUBIR +15%–20% en Omnibees. Solo NR. Mínimo 2 noches.';
-    cambio = true;
-  } else if (o > 75) {
-    mult = 1.10;
-    nivel = 'alto';
-    accion = 'SUBIR +10% en Omnibees. Apagar todo excepto Genius.';
-    cambio = true;
-  } else if (o > 65) {
-    mult = 1.05;
-    nivel = 'medio';
-    accion = temp==='baja-fin'||temp==='baja-sem'
-      ? 'SUBIR +5% entre semana en Omnibees. Apagar Escapada.'
-      : 'Rack T.Alta vigente. Sin cambios adicionales.';
-    cambio = temp==='baja-fin'||temp==='baja-sem';
-  } else if (o >= 40) {
-    mult = 1.0;
-    nivel = 'ok';
-    accion = 'Rack base vigente. Sin cambios.';
-    cambio = false;
-  } else {
-    mult = 1.0;
-    nivel = 'bajo';
-    accion = 'Rack sin cambio. Activar Genius + Escapada (T.Baja sem). No tocar precio.';
-    cambio = false;
-  }
-
-  const precioSugerido = cambio ? r1k(rackBase * mult) : rackBase;
-  const diferencia = precioSugerido - rack; // rack es el actual con mult ya aplicado
-
-  return { accion, precioSugerido, rackBase, nivel, cambio, diferencia, mult };
-}
-
-function getRecomendacionDirecta(tipo, temp, ocup) {
-  // Protocolo Sección 2: directa tiene precio fijo por temporada
-  // Solo ajuste: walk-in ocup>80% → +$30K
-  const t = TF[tipo];
-  const base = (temp==='alta'||temp==='alta-fin'||temp==='feria') ? t.da : t.db;
-  
-  if (ocup === null) return {
-    precio: base,
-    walkin: base,
-    nota: 'Ingresar % ocupación',
-    alerta: false,
-  };
-
-  const walkin = ocup > 80 ? base + 30000 : base;
-  const alerta = ocup > 80;
-  const nota = temp==='feria'
-    ? 'Feria: usar T.Alta finde OTA. Sin descuento. No negociar.'
-    : temp==='alta'||temp==='alta-fin'
-    ? 'T.Alta: precio fijo. Sin descuentos. No negociar.'
-    : ocup < 35
-    ? 'Ocup. baja: precio fijo. Ofrecer desayuno antes de bajar.'
-    : 'Tarifa estándar. No negociar por debajo.';
-
-  return { precio: base, walkin, nota, alerta };
-}
-
-function getAlerta(temp, prevTemp, ocup) {
-  // Detecta transiciones que requieren acción en Omnibees o Extranet
-  if (!prevTemp || prevTemp === temp) return null;
-  
-  const acciones = {
-    // Entrando a Feria
-    'baja-sem→feria': {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria en Omnibees, solo NR'},
-    'baja-fin→feria': {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria en Omnibees, solo NR'},
-    'alta→feria':     {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, cargar tarifa Feria en Omnibees'},
-    'alta-fin→feria': {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, cargar tarifa Feria en Omnibees'},
-    // Saliendo de Feria
-    'feria→alta':     {tipo:'ALTA', msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta en Omnibees'},
-    'feria→alta-fin': {tipo:'ALTA', msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta finde en Omnibees'},
-    'feria→baja-sem': {tipo:'ALTA', msg:'Fin Feria — reactivar Genius y Escapada, cargar tarifas T.Baja en Omnibees'},
-    // Entrando a T.Alta
-    'baja-sem→alta':     {tipo:'MEDIA', msg:'Inicio T.Alta — apagar Escapada en Omnibees/Extranet, cargar tarifas T.Alta sem'},
-    'baja-fin→alta':     {tipo:'MEDIA', msg:'Inicio T.Alta — apagar Escapada, cargar tarifas T.Alta sem en Omnibees'},
-    'baja-sem→alta-fin': {tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees'},
-    'baja-fin→alta-fin': {tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees'},
-    // Saliendo de T.Alta
-    'alta→baja-sem':     {tipo:'MEDIA', msg:'Fin T.Alta — reactivar Escapada (máx -10%), cargar tarifas T.Baja sem en Omnibees'},
-    'alta-fin→baja-sem': {tipo:'MEDIA', msg:'Fin T.Alta — reactivar Escapada (máx -10%), cargar tarifas T.Baja sem en Omnibees'},
-    'alta→baja-fin':     {tipo:'INFO',  msg:'Transición a T.Baja finde — Escapada apagada en finde, tarifas finde en Omnibees'},
-    'alta-fin→baja-fin': {tipo:'INFO',  msg:'Transición a T.Baja finde — Escapada apagada, tarifas finde en Omnibees'},
-    // Finde → semana y viceversa dentro de T.Baja
-    'baja-fin→baja-sem': {tipo:'INFO',  msg:'Lunes: transición finde→semana. Genius+Escapada activos. Revisar rack T.Baja sem en Omnibees'},
-    'baja-sem→baja-fin': {tipo:'INFO',  msg:'Viernes: transición semana→finde. Apagar Escapada. Cargar rack T.Baja finde en Omnibees'},
-  };
-  
-  const key = prevTemp + '→' + temp;
-  return acciones[key] || null;
-}
-function fmtCOP(n){return'$'+Math.round(n).toLocaleString('es-CO');}
-
+// ─── DESCUENTOS ──────────────────────────────────────────────────────
 function getDesc(temp,ocup){
   const o=ocup??50;
-  const isFeria   = temp==='feria';
-  const isAlta    = temp==='alta';
-  const isAltaFin = temp==='alta-fin';
-  const isBajaFin = temp==='baja-fin';
-  const esAlta    = isAlta||isAltaFin;
-  const geniusOk  = !isFeria;
-  const genius    = isFeria?'Excluir en Extranet (antes 1 mayo)':'Activo -15%';
-  const escapadaOk= !isFeria&&!esAlta&&!isBajaFin&&o<50;
-  const escapada  = isFeria||esAlta?'Apagada':
-                    isBajaFin?'Apagada (finde)':
-                    o<50?'Activa max -10%':'No necesaria';
+  const isFeria=temp==='feria', esAlta=(temp==='alta'||temp==='alta-fin'), esBajaFin=temp==='baja-fin';
+  // Genius: activo SIEMPRE excepto Feria
+  const geniusOk=!isFeria;
+  const genius=isFeria?'Excluir en Extranet (antes 1 mayo)':'Activo −15%';
+  // Escapada: solo T.Baja semana máx −10%
+  const escapadaOk=!isFeria&&!esAlta&&!esBajaFin&&o<50;
+  const escapada=isFeria||esAlta?'Apagada':esBajaFin?'Apagada (finde)':o<50?'Activa máx −10%':'No necesaria';
+  // Nacional, Intl, Móvil: SIEMPRE activos −10%, no acumulables entre sí
   const nota=isFeria
-    ?'FERIA: excluir Genius en Extranet. Solo NR. Nacional/Intl/Movil activos.'
-    :esAlta&&o>75?'T. Alta alta ocup.: Genius activo. Escapada apagada. Nacional/Intl/Movil activos.'
-    :o<40?'Ocup. baja: Genius activo. Escapada activa si T.Baja sem y ocup<50%. Nacional/Intl/Movil siempre.'
-    :'Genius activo. Nacional, Intl y Movil siempre activos al 10% (no acumulables entre si).';
+    ?'FERIA: excluir Genius en Extranet. Solo NR. Nacional/Intl/Móvil activos.'
+    :esAlta&&o>75?'T.Alta alta ocup.: Genius activo. Escapada apagada. Nacional/Intl/Móvil siempre.'
+    :o<40?'Ocup. baja: Genius activo. Escapada si T.Baja sem y ocup<50%. Nacional/Intl/Móvil siempre.'
+    :'Genius activo. Nacional, Intl y Móvil siempre activos al −10% (no acumulables).';
   return{geniusOk,genius,escapadaOk,escapada,nota};
 }
 
-function discPills(desc){
-  return[
-    [desc.geniusOk,'Genius'],
-    [desc.escapadaOk,'Escapada'],
-    [true,'Nacional -10%'],
-    [true,'Intl. -10%'],
-    [true,'Movil -10%'],
-  ].map(([ok,lbl])=>`<span class="disc-pill" style="background:${ok?'#D5F5E3':'#f1f1f1'};color:${ok?'#1A5E1A':'#888'}">${ok?'&#10003;':'&#10005;'} ${lbl}</span>`).join('');
+// ─── RECOMENDACIÓN DE PRECIO ─────────────────────────────────────────
+// Calcula si hay que subir el rack y devuelve precio sugerido + acción
+function getRecomendacion(tipo,temp,ocup){
+  if(ocup===null) return {cambio:false,accion:'Ingresar % ocupación',nivel:'info'};
+  const t=TF[tipo];
+  // Rack base de temporada (sin multiplicador — es el precio que subirías en Omnibees)
+  let rackBase;
+  if(temp==='feria')    rackBase=t.fe;
+  else if(temp==='alta-fin') rackBase=t.af;
+  else if(temp==='alta')     rackBase=t.as;
+  else if(temp==='baja-fin') rackBase=t.bf;
+  else                        rackBase=t.bs;
+
+  if(ocup>85){
+    const sug=r1k(rackBase*1.175);
+    return{cambio:true,nivel:'critico',precioSugerido:sug,accion:'SUBIR +15%–20% en Omnibees. Solo NR. Mínimo 2 noches.'};
+  }
+  if(ocup>75){
+    const sug=r1k(rackBase*1.10);
+    return{cambio:true,nivel:'alto',precioSugerido:sug,accion:'SUBIR +10% en Omnibees. Solo Genius activo.'};
+  }
+  if(ocup>65&&(temp==='baja-sem'||temp==='baja-fin')){
+    const sug=r1k(rackBase*1.05);
+    return{cambio:true,nivel:'medio',precioSugerido:sug,accion:'SUBIR +5% entre semana en Omnibees. Apagar Escapada.'};
+  }
+  if(ocup>=40) return{cambio:false,nivel:'ok',accion:'Rack base vigente. Sin cambios.'};
+  return{cambio:false,nivel:'bajo',accion:'Rack sin cambio. Activar Genius + Escapada (T.Baja sem). No tocar precio.'};
 }
 
-let currentTab='otas',ocups={},expandedDate=null,startDateVal='';
+// Colores para niveles de recomendación
+const REC_CFG={
+  critico:{bg:'#FEF0EE',color:'#C62828'},
+  alto:   {bg:'#FFF3E0',color:'#E65100'},
+  medio:  {bg:'#FFF8E1',color:'#F57F17'},
+  ok:     {bg:'#F1F8E9',color:'#33691E'},
+  bajo:   {bg:'#E3F2FD',color:'#1565C0'},
+  info:   {bg:'#F5F5F5',color:'#888'},
+};
 
-function getDays(){const d=[];for(let i=0;i<30;i++)d.push(addDays(startDateVal,i));return d;}
+// ─── ALERTA DE CAMBIO DE TEMPORADA ───────────────────────────────────
+function getAlerta(temp,prevTemp){
+  if(!prevTemp||prevTemp===temp) return null;
+  const A={
+    'baja-sem→feria':  {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria en Omnibees. Solo NR.'},
+    'baja-fin→feria':  {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria en Omnibees. Solo NR.'},
+    'alta→feria':      {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius en Extranet, cargar tarifa Feria en Omnibees.'},
+    'alta-fin→feria':  {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius en Extranet, cargar tarifa Feria en Omnibees.'},
+    'feria→alta':      {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta sem en Omnibees.'},
+    'feria→alta-fin':  {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta finde en Omnibees.'},
+    'feria→baja-sem':  {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius + Escapada, cargar tarifas T.Baja en Omnibees.'},
+    'feria→baja-fin':  {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius, cargar tarifas T.Baja finde en Omnibees.'},
+    'baja-sem→alta':   {tipo:'MEDIA',  msg:'Inicio T.Alta — apagar Escapada, cargar tarifas T.Alta sem en Omnibees.'},
+    'baja-fin→alta':   {tipo:'MEDIA',  msg:'Inicio T.Alta — apagar Escapada, cargar tarifas T.Alta sem en Omnibees.'},
+    'baja-sem→alta-fin':{tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees.'},
+    'baja-fin→alta-fin':{tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees.'},
+    'alta→baja-sem':   {tipo:'MEDIA',  msg:'Fin T.Alta — reactivar Escapada (máx −10%), cargar tarifas T.Baja sem en Omnibees.'},
+    'alta-fin→baja-sem':{tipo:'MEDIA', msg:'Fin T.Alta — reactivar Escapada (máx −10%), cargar tarifas T.Baja sem en Omnibees.'},
+    'alta→baja-fin':   {tipo:'INFO',   msg:'Transición T.Alta → T.Baja finde — Escapada apagada, tarifas finde en Omnibees.'},
+    'alta-fin→baja-fin':{tipo:'INFO',  msg:'Transición T.Alta → T.Baja finde — Escapada apagada.'},
+    'baja-fin→baja-sem':{tipo:'INFO',  msg:'Lunes: semana → Genius+Escapada activos. Revisar rack T.Baja sem en Omnibees.'},
+    'baja-sem→baja-fin':{tipo:'INFO',  msg:'Viernes: finde → apagar Escapada. Cargar rack T.Baja finde en Omnibees.'},
+  };
+  return A[prevTemp+'→'+temp]||null;
+}
+const ALERTA_CFG={
+  CRITICA:{bg:'#FDECEA',color:'#C62828',icon:'🔴'},
+  ALTA:   {bg:'#FFF3E0',color:'#E65100',icon:'🟠'},
+  MEDIA:  {bg:'#FFF8E1',color:'#F57F17',icon:'🟡'},
+  INFO:   {bg:'#E8F5E9',color:'#2E7D32',icon:'🟢'},
+};
 
+// ─── UTILIDADES ───────────────────────────────────────────────────────
+function r1k(n){return Math.round(n/1000)*1000;}
+function fmtCOP(n){return '$'+Math.round(n).toLocaleString('es-CO');}
+
+// ─── ESTADO ───────────────────────────────────────────────────────────
+let currentTab='otas', ocups={}, expandedDate=null, startDateVal='';
+
+function getDays(){const a=[];for(let i=0;i<30;i++)a.push(addDays(startDateVal,i));return a;}
+
+// ─── PASTE ────────────────────────────────────────────────────────────
 function aplicarPaste(){
   const txt=document.getElementById('pasteInput').value.trim();
   if(!txt) return;
-  let count=0,firstDate=null;
+  let count=0, firstDate=null;
   txt.split('\n').forEach(line=>{
     const parts=line.trim().split(':');
     if(parts.length>=2){
-      const fecha=parts[0].trim(),val=parseInt(parts[1].trim(),10);
+      const fecha=parts[0].trim(), val=parseInt(parts[1].trim(),10);
       if(fecha.match(/^\d{4}-\d{2}-\d{2}$/)&&!isNaN(val)){
         ocups[fecha]=Math.min(100,Math.max(0,val));
         if(!firstDate) firstDate=fecha;
@@ -461,13 +344,12 @@ function aplicarPaste(){
   });
   if(firstDate){startDateVal=firstDate;document.getElementById('startDate').value=firstDate;}
   const msg=document.getElementById('pasteMsg');
-  msg.textContent=count+' dias cargados correctamente';
+  msg.textContent=count+' días cargados correctamente';
   msg.style.color='#1A5E1A';
   setTimeout(()=>msg.textContent='',3000);
   expandedDate=null;
   renderTable();
 }
-
 function limpiarTodo(){
   ocups={};
   document.getElementById('pasteInput').value='';
@@ -476,181 +358,185 @@ function limpiarTodo(){
   renderTable();
 }
 
+// ─── KPIs ─────────────────────────────────────────────────────────────
 function renderKPIs(days){
   const ol=days.map(d=>ocups[d]??null).filter(o=>o!==null);
   const prom=ol.length?Math.round(ol.reduce((a,b)=>a+b,0)/ol.length):0;
   const carg=Object.keys(ocups).filter(k=>days.includes(k)).length;
   const sel=document.getElementById('tipoSel').value||'Doble 2p';
-  document.getElementById('kpis').innerHTML=`
-    <div class="kpi"><div class="kpi-label">Ocup. promedio</div><div class="kpi-val" style="color:${prom>65?'#922B21':prom>35?'#A04000':'#1A5E1A'}">${prom}%</div></div>
-    <div class="kpi"><div class="kpi-label">Periodo</div><div class="kpi-val" style="font-size:12px">${days[0].slice(5)} &rarr; ${days[29].slice(5)}</div></div>
-    <div class="kpi"><div class="kpi-label">Dias cargados</div><div class="kpi-val">${carg} / 30</div></div>
-    <div class="kpi"><div class="kpi-label">Tipologia</div><div class="kpi-val" style="font-size:12px;color:#1A2B4A">${sel}</div></div>`;
+  document.getElementById('kpis').innerHTML=
+    '<div class="kpi"><div class="kpi-lbl">Ocup. promedio</div><div class="kpi-val" style="color:'+(prom>65?'#922B21':prom>35?'#A04000':'#1A5E1A')+'">'+prom+'%</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Período</div><div class="kpi-val" style="font-size:12px">'+days[0].slice(5)+' → '+days[29].slice(5)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Días cargados</div><div class="kpi-val">'+carg+' / 30</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Tipología</div><div class="kpi-val" style="font-size:12px;color:#1A2B4A">'+sel+'</div></div>';
 }
 
+// ─── RENDER PRINCIPAL ─────────────────────────────────────────────────
 function renderTable(){
-  const days=getDays(),sel=document.getElementById('tipoSel').value||'Doble 2p';
+  const days=getDays(), sel=document.getElementById('tipoSel').value||'Doble 2p';
   renderKPIs(days);
   const isOta=currentTab==='otas';
-  document.getElementById('thead').innerHTML=`<tr>
-    <th style="text-align:left">Fecha</th><th>Temporada</th><th>Ocup%</th>
-    ${isOta
-      ?'<th>Rack OTA</th><th>Neto -15%</th><th style="min-width:220px">Descuentos y acción</th>'
-      :'<th>Directa</th><th>Walk-in</th><th style="min-width:200px">Instrucción y acción</th>'}
-  </tr>`;
 
-  let html='';
-  let prevTemp = null;
+  document.getElementById('thead').innerHTML='<tr>'+
+    '<th style="text-align:left">Fecha</th>'+
+    '<th>Temporada</th>'+
+    '<th>Ocup%</th>'+
+    (isOta
+      ?'<th>Rack OTA</th><th>Neto −15%</th><th style="text-align:left;min-width:220px">Descuentos y acción Omnibees</th>'
+      :'<th>Directa</th><th>Walk-in</th><th style="text-align:left;min-width:200px">Instrucción y acción</th>')+
+    '</tr>';
+
+  let html='', prevTemp=null;
+
   days.forEach(d=>{
-    const ocup=ocups[d]??null,temp=getTemp(d);
-    const tc=TC[temp],mult=getMult(ocup,temp);
+    const ocup=ocups[d]??null, temp=getTemp(d);
+    const tc=TC[temp]||TC['baja-sem'];
+    const mult=getMult(ocup);
     const rack=r1k(getRack(sel,temp)*mult);
     const neto=r1k(rack*0.85);
     const directa=getDirecta(sel,temp,ocup,false);
     const walkin=getDirecta(sel,temp,ocup,true);
     const desc=getDesc(temp,ocup);
-    const pd=parseLD(d),dow=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'][pd.getDay()];
-    const isFeria=temp==='feria',isAlta=temp==='alta';
+    const rec=getRecomendacion(sel,temp,ocup);
+    const pd=parseLD(d), dow=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][pd.getDay()];
+    const isFeria=temp==='feria', isAlta=(temp==='alta'||temp==='alta-fin');
     const rowBg=isFeria?'#FEF0EE':isAlta?'#FEF7EE':'#fff';
     const isExp=expandedDate===d;
     const pct=ocup!==null?Math.min(ocup,100):0;
     const barColor=ocup>75?'#922B21':ocup>50?'#A04000':'#1A5E1A';
 
-    const ocupCell=`<div class="bar-wrap">
-      <input type="number" min="0" max="100" step="1" value="${ocup??''}" placeholder="—"
-        onchange="setOcup('${d}',this.value)" onclick="event.stopPropagation()">
-      ${ocup!==null?`<div style="width:${pct*0.44}px;height:5px;border-radius:3px;flex-shrink:0;background:${barColor}"></div>`:''}
-    </div>`;
-
-    let mid='';
-    if(isOta){
-      const ac=desc.geniusOk?(desc.escapadaOk?'Genius + Escapada':'Genius activo'):'Sin Genius (Feria)';
-      const rec=getRecomendacion(sel,temp,ocup,rack);
-      const recColors={'critico':'#922B21','alto':'#E65100','medio':'#F57F17','ok':'#1A5E1A','bajo':'#1565C0','info':'#888'};
-      const recBgs={'critico':'#FEF0EE','alto':'#FFF3E0','medio':'#FFF8E1','ok':'#F1F8E9','bajo':'#E3F2FD','info':'#F5F5F5'};
-      const recColor=recColors[rec.nivel]||'#888';
-      const recBg=recBgs[rec.nivel]||'#F5F5F5';
-      const recCell=rec.cambio
-        ? `<td style="background:${recBg};text-align:left;padding:5px 8px">
-            <div style="font-size:10px;font-weight:700;color:${recColor}">
-              ${fmtCOP(rec.precioSugerido)} <span style="font-size:9px;opacity:0.7">(actual ${fmtCOP(rack)})</span>
-            </div>
-            <div style="font-size:9px;color:${recColor};margin-top:1px">${rec.accion}</div>
-           </td>`
-        : `<td style="text-align:left;padding:5px 8px;font-size:10px;color:${recColor}">${rec.accion}</td>`;
-      // Celda unificada: estado descuentos + alerta precio si hay cambio requerido
-      const unifiedOTA='<td style="text-align:left;padding:5px 8px">'
-        +'<span style="font-size:10px;color:'+(desc.geniusOk?'#1A5E1A':'#922B21')+'">'+ac+'</span>'
-        +(rec.cambio
-          ?'<div style="margin-top:4px;padding:4px 6px;border-radius:4px;background:'+recBg+';border-left:2px solid '+recColor+'">'
-           +'<span style="font-size:10px;font-weight:700;color:'+recColor+'">&#9889; Subir a '+fmtCOP(rec.precioSugerido)+'</span>'
-           +'<span style="font-size:9px;color:'+recColor+';margin-left:4px">(actual '+fmtCOP(rack)+')</span>'
-           +'<div style="font-size:9px;color:'+recColor+';margin-top:1px">'+rec.accion+'</div>'
-           +'</div>'
-          :'')
-        +'</td>';
-      mid=`<td style="font-weight:500;color:${isFeria?'#7D0000':isAlta?'#7D3C00':'#1a1a2e'}">${fmtCOP(rack)}</td>
-           <td style="color:#6b7280">${fmtCOP(neto)}</td>
-           ${unifiedOTA}`;
-    } else {
-      const inst=isFeria?'Feria: OTA T.Alta finde. Sin descuento.':
-        isAlta?'T.Alta: NR preferido. No bajar.':
-        ocup!==null&&ocup<35?'Ocupacion baja: ofrecer desayuno antes de bajar.':
-        'Tarifa estandar. No negociar por debajo.';
-      const recDir=getRecomendacionDirecta(sel,temp,ocup);
-      const dirRecCell=recDir.alerta
-        ?('<td style="background:#FEF0EE;text-align:left;padding:5px 8px">'
-          +'<div style="font-size:10px;font-weight:700;color:#922B21">Ocup &gt;80% — Walk-in: '+fmtCOP(recDir.walkin)+'</div>'
-          +'<div style="font-size:9px;color:#922B21">Cobrar +$30.000 sobre tarifa base</div></td>')
-        :('<td style="text-align:left;padding:5px 8px;font-size:10px;color:#555">'+recDir.nota+'</td>');
-      // Celda directa unificada
-      const unifiedDir='<td style="text-align:left;padding:5px 8px">'
-        +'<span style="font-size:10px;color:#555">'+inst+'</span>'
-        +(recDir.alerta
-          ?'<div style="margin-top:4px;padding:4px 6px;border-radius:4px;background:#FEF0EE;border-left:2px solid #922B21">'
-           +'<span style="font-size:10px;font-weight:700;color:#922B21">&#9889; Walk-in: cobrar '+fmtCOP(recDir.walkin)+'</span>'
-           +'<div style="font-size:9px;color:#922B21">+$30.000 sobre base por ocup &gt;80%</div>'
-           +'</div>'
-          :'')
-        +'</td>';
-      mid=`<td style="font-weight:500;color:#1A2B4A">${fmtCOP(directa)}</td>
-           <td style="color:${ocup!==null&&ocup>80?'#922B21':'#6b7280'}">${fmtCOP(walkin)}${ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':''}</td>
-           ${unifiedDir}`;
-    }
-
-    
-    // ── Alerta cambio de temporada ────────────────────────────────────
-    const alerta=getAlerta(temp,prevTemp,ocup);
+    // Alerta de cambio de temporada
+    const alerta=getAlerta(temp,prevTemp);
     if(alerta){
-      const AC={'CRITICA':{bg:'#FDECEA',color:'#C62828',icon:'\uD83D\uDD34'},
-                'ALTA':{bg:'#FFF3E0',color:'#E65100',icon:'\uD83D\uDFE0'},
-                'MEDIA':{bg:'#FFF8E1',color:'#F57F17',icon:'\uD83D\uDFE1'},
-                'INFO':{bg:'#E8F5E9',color:'#2E7D32',icon:'\uD83D\uDFE2'}};
-      const ac=AC[alerta.tipo]||AC['INFO'];
-      html+='<tr style="background:'+ac.bg+'"><td colspan="6" style="padding:6px 14px;border-bottom:1px solid rgba(0,0,0,0.08)">'
-        +'<span style="font-size:10px;font-weight:700;color:'+ac.color+'">'+ac.icon+' ACCIÓN OMNIBEES — '+alerta.tipo+': </span>'
-        +'<span style="font-size:10px;color:'+ac.color+'">'+alerta.msg+'</span>'
-        +'</td></tr>';
+      const ac=ALERTA_CFG[alerta.tipo]||ALERTA_CFG.INFO;
+      html+='<tr class="alert-row" style="background:'+ac.bg+';cursor:default">'+
+        '<td colspan="6" style="text-align:left;padding:5px 14px">'+
+        '<span style="font-size:10px;font-weight:700;color:'+ac.color+'">'+ac.icon+' ACCIÓN OMNIBEES — '+alerta.tipo+':</span> '+
+        '<span style="font-size:10px;color:'+ac.color+'">'+alerta.msg+'</span>'+
+        '</td></tr>';
     }
     prevTemp=temp;
 
-    html+=`<tr style="background:${rowBg};cursor:pointer" onclick="toggleExp('${d}')">
-      <td><span style="color:#6b7280;font-size:10px;margin-right:4px">${dow}</span>${d.slice(5)}</td>
-      <td><span class="badge" style="background:${tc.bg};color:${tc.color}">${tc.label}</span></td>
-      <td>${ocupCell}</td>${mid}
-    </tr>`;
+    // Celda de ocupación con barra
+    const ocupCell='<div class="bar-wrap">'+
+      '<input type="number" min="0" max="100" step="1" value="'+(ocup??'')+'" placeholder="—" '+
+      'onchange="setOcup(\''+d+'\',this.value)" onclick="event.stopPropagation()" style="width:46px">'+
+      (ocup!==null?'<div style="width:'+Math.round(pct*0.44)+'px;height:5px;border-radius:3px;flex-shrink:0;background:'+barColor+'"></div>':'')+
+      '</div>';
 
+    // Badge de temporada
+    const tempBadge='<span class="badge" style="background:'+tc.bg+';color:'+tc.color+'">'+tc.label+'</span>';
+
+    // Celda unificada: estado descuentos + alerta de precio si hay cambio requerido
+    let unifiedCell;
+    if(isOta){
+      const ac2=desc.geniusOk?(desc.escapadaOk?'Genius + Escapada':'Genius activo'):'Sin Genius (Feria)';
+      const descSpan='<span style="font-size:10px;color:'+(desc.geniusOk?'#1A5E1A':'#922B21')+'">'+ac2+'</span>';
+      let recDiv='';
+      if(rec.cambio){
+        const rc=REC_CFG[rec.nivel]||REC_CFG.info;
+        recDiv='<div style="margin-top:4px;padding:4px 7px;border-radius:4px;background:'+rc.bg+';border-left:2px solid '+rc.color+'">'
+          +'<span style="font-size:10px;font-weight:700;color:'+rc.color+'">⚡ Subir a '+fmtCOP(rec.precioSugerido)+'</span>'
+          +'<span style="font-size:9px;color:'+rc.color+';margin-left:5px">(actual '+fmtCOP(rack)+')</span>'
+          +'<div style="font-size:9px;color:'+rc.color+';margin-top:1px">'+rec.accion+'</div>'
+          +'</div>';
+      }
+      unifiedCell='<td style="text-align:left;padding:5px 7px;vertical-align:top">'+descSpan+recDiv+'</td>';
+    } else {
+      const inst=isFeria?'Feria: OTA T.Alta finde. Sin descuento.':
+        isAlta?'T.Alta: NR preferido. No bajar.':
+        ocup!==null&&ocup<35?'Ocup. baja: precio fijo. Ofrecer desayuno.':
+        'Tarifa estándar. No negociar por debajo.';
+      let walkDiv='';
+      if(ocup!==null&&ocup>80){
+        walkDiv='<div style="margin-top:4px;padding:4px 7px;border-radius:4px;background:#FEF0EE;border-left:2px solid #C62828">'
+          +'<span style="font-size:10px;font-weight:700;color:#C62828">⚡ Walk-in: cobrar '+fmtCOP(walkin)+'</span>'
+          +'<div style="font-size:9px;color:#C62828">+$30.000 sobre base por ocup &gt;80%</div>'
+          +'</div>';
+      }
+      unifiedCell='<td style="text-align:left;padding:5px 7px;vertical-align:top"><span style="font-size:10px;color:#555">'+inst+'</span>'+walkDiv+'</td>';
+    }
+
+    let midCells;
+    if(isOta){
+      midCells='<td style="font-weight:500;color:'+(isFeria?'#7D0000':isAlta?'#7D3C00':'#1a1a2e')+'">'+fmtCOP(rack)+'</td>'+
+               '<td style="color:#6b7280">'+fmtCOP(neto)+'</td>'+
+               unifiedCell;
+    } else {
+      midCells='<td style="font-weight:500;color:#1A2B4A">'+fmtCOP(directa)+'</td>'+
+               '<td style="color:'+(ocup!==null&&ocup>80?'#922B21':'#6b7280')+'">'+fmtCOP(walkin)+
+               (ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':'')+
+               '</td>'+unifiedCell;
+    }
+
+    html+='<tr style="background:'+rowBg+';cursor:pointer" onclick="toggleExp(\''+d+'\')">'
+      +'<td><span style="color:#6b7280;font-size:10px;margin-right:4px">'+dow+'</span>'+d.slice(5)+'</td>'
+      +'<td>'+tempBadge+'</td>'
+      +'<td>'+ocupCell+'</td>'
+      +midCells
+      +'</tr>';
+
+    // Fila expandida — todas las tipologías
     if(isExp){
       const tiposRows=TIPOS.map((t,i)=>{
         const r=r1k(getRack(t,temp)*mult);
         const dir=getDirecta(t,temp,ocup,false);
         const wlk=getDirecta(t,temp,ocup,true);
+        const recT=getRecomendacion(t,temp,ocup);
         const isSuite=t.includes('Suite');
-        const recT=getRecomendacion(t,temp,ocup,r);
-        const recTcolor=recT.cambio?({'critico':'#922B21','alto':'#E65100','medio':'#F57F17'}[recT.nivel]||'#555'):'#aaa';
-        const recTcell=recT.cambio
-          ?`<td style="text-align:left;padding:4px 6px;font-size:10px">
-              <b style="color:${recTcolor}">${fmtCOP(recT.precioSugerido)}</b>
-              <span style="color:${recTcolor};font-size:9px"> ↑${Math.round((recT.mult-1)*100)}%</span>
-            </td>`
-          :`<td style="text-align:left;padding:4px 6px;font-size:9px;color:#aaa">Sin cambio</td>`;
-        return\`<tr style="background:\${i%2===0?'#f4f6f8':'#fff'}">
-          <td style="font-weight:\${isSuite?500:400};color:\${isSuite?'#1A2B4A':'#1a1a2e'};padding:4px 6px">\${t}</td>
-          <td style="text-align:right;font-weight:500;padding:4px 6px">\${fmtCOP(r)}</td>
-          <td style="text-align:right;color:#6b7280;padding:4px 6px">\${fmtCOP(r1k(r*0.85))}</td>
-          <td style="text-align:right;color:#1A2B4A;padding:4px 6px">\${fmtCOP(dir)}</td>
-          <td style="text-align:right;color:\${ocup!==null&&ocup>80?'#922B21':'#6b7280'};padding:4px 6px">\${fmtCOP(wlk)}</td>
-          \${recTcell}
-        </tr>\`;
+        let recTcell='<td style="text-align:left;padding:3px 6px;font-size:9px;color:#aaa">Sin cambio</td>';
+        if(recT.cambio){
+          const rc=REC_CFG[recT.nivel]||REC_CFG.info;
+          recTcell='<td style="text-align:left;padding:3px 6px">'
+            +'<b style="font-size:10px;color:'+rc.color+'">'+fmtCOP(recT.precioSugerido)+'</b>'
+            +'<span style="font-size:9px;color:'+rc.color+';margin-left:3px">↑'+Math.round((getMult(ocup)-1)*100)+'%</span>'
+            +'</td>';
+        }
+        return '<tr style="background:'+(i%2===0?'#f4f6f8':'#fff')+'">'
+          +'<td style="font-weight:'+(isSuite?500:400)+';color:'+(isSuite?'#1A2B4A':'#1a1a2e')+';padding:4px 6px">'+t+'</td>'
+          +'<td style="text-align:right;font-weight:500;padding:4px 6px">'+fmtCOP(r)+'</td>'
+          +'<td style="text-align:right;color:#6b7280;padding:4px 6px">'+fmtCOP(r1k(r*0.85))+'</td>'
+          +'<td style="text-align:right;color:#1A2B4A;padding:4px 6px">'+fmtCOP(dir)+'</td>'
+          +'<td style="text-align:right;color:'+(ocup!==null&&ocup>80?'#922B21':'#6b7280')+';padding:4px 6px">'+fmtCOP(wlk)+'</td>'
+          +recTcell
+          +'</tr>';
       }).join('');
 
-      html+=`<tr style="background:${rowBg}"><td colspan="6" style="padding:8px 12px">
-        <div class="exp-inner">
-          <div style="font-size:11px;font-weight:500;margin-bottom:8px">Todas las tipologias — ${d}</div>
-          <div style="overflow-x:auto">
-            <table style="width:100%;font-size:10px;border-collapse:collapse;min-width:420px">
-              <thead><tr>
-                <th style="text-align:left;padding:5px 6px;width:120px">Tipo</th>
-                <th style="text-align:right;padding:5px 6px">Rack OTA</th>
-                <th style="text-align:right;padding:5px 6px">Neto -15%</th>
-                <th style="text-align:right;padding:5px 6px">Directa</th>
-                <th style="text-align:right;padding:5px 6px">Walk-in</th>
-              </tr></thead>
-              <tbody>${tiposRows}</tbody>
-            </table>
-          </div>
-          <div style="margin-top:8px;padding:8px 10px;background:#f4f6f8;border-radius:8px">
-            <div style="font-size:10px;font-weight:500;margin-bottom:4px">Descuentos activos</div>
-            <div>${discPills(desc)}</div>
-            <div style="font-size:10px;color:#6b7280;margin-top:4px;font-style:italic">${desc.nota}</div>
-          </div>
-        </div>
-      </td></tr>`;
+      const descPills=[
+        [desc.geniusOk,'Genius',desc.genius],
+        [desc.escapadaOk,'Escapada',desc.escapada],
+        [true,'Nacional −10%','Siempre activo'],
+        [true,'Intl. −10%','Siempre activo'],
+        [true,'Móvil −10%','Siempre activo'],
+      ].map(([ok,lbl])=>'<span class="disc-pill" style="background:'+(ok?'#D5F5E3':'#f1f1f1')+';color:'+(ok?'#1A5E1A':'#888')+'">'+(ok?'✓':'✗')+' '+lbl+'</span>').join('');
+
+      html+='<tr style="background:'+rowBg+'"><td colspan="6" style="padding:8px 12px">'
+        +'<div class="exp-inner">'
+        +'<div style="font-size:11px;font-weight:500;margin-bottom:8px">Todas las tipologías — '+d+'</div>'
+        +'<div style="overflow-x:auto">'
+        +'<table style="width:100%;font-size:10px;border-collapse:collapse;min-width:440px">'
+        +'<thead><tr><th style="text-align:left;padding:5px 6px;width:120px">Tipo</th>'
+        +'<th style="text-align:right;padding:5px 6px">Rack OTA</th>'
+        +'<th style="text-align:right;padding:5px 6px">Neto −15%</th>'
+        +'<th style="text-align:right;padding:5px 6px">Directa</th>'
+        +'<th style="text-align:right;padding:5px 6px">Walk-in</th>'
+        +'<th style="text-align:left;padding:5px 6px">⚡ Sugerido</th>'
+        +'</tr></thead>'
+        +'<tbody>'+tiposRows+'</tbody>'
+        +'</table></div>'
+        +'<div style="margin-top:8px;padding:8px 10px;background:#f4f6f8;border-radius:var(--r)">'
+        +'<div style="font-size:10px;font-weight:500;margin-bottom:4px">Descuentos activos</div>'
+        +'<div>'+descPills+'</div>'
+        +'<div style="font-size:10px;color:#6b7280;margin-top:4px;font-style:italic">'+desc.nota+'</div>'
+        +'</div></div>'
+        +'</td></tr>';
     }
   });
+
   document.getElementById('tbody').innerHTML=html;
 }
 
+// ─── HANDLERS ────────────────────────────────────────────────────────
 function setTab(t,btn){
   currentTab=t;
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
@@ -664,15 +550,20 @@ function setOcup(date,val){
 }
 function toggleExp(d){expandedDate=expandedDate===d?null:d;renderTable();}
 
+// ─── INIT ─────────────────────────────────────────────────────────────
 const today=new Date();
 startDateVal=dateStr(today);
 document.getElementById('startDate').value=startDateVal;
 document.getElementById('hdr-date').textContent=today.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+document.getElementById('startDate').onchange=function(){startDateVal=this.value;ocups={};expandedDate=null;renderTable();};
+
+// Poblar tipologías ANTES de renderTable
 const tipoSel=document.getElementById('tipoSel');
 TIPOS.forEach(t=>{const o=document.createElement('option');o.value=o.textContent=t;tipoSel.appendChild(o);});
 tipoSel.value='Doble 2p';
 tipoSel.onchange=renderTable;
-document.getElementById('startDate').onchange=function(){startDateVal=this.value;ocups={};expandedDate=null;renderTable();};
+
+// Render inicial
 renderTable();
 </script>
 </body>
