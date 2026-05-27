@@ -495,8 +495,8 @@ function renderTable(){
   document.getElementById('thead').innerHTML=`<tr>
     <th style="text-align:left">Fecha</th><th>Temporada</th><th>Ocup%</th>
     ${isOta
-      ?'<th>Rack OTA</th><th>Neto -15%</th><th>Descuentos hoy</th><th style="background:#1a3a5c;min-width:180px">&#9889; Recomendación Omnibees</th>'
-      :'<th>Directa</th><th>Walk-in</th><th>Instruccion recepcion</th><th style="background:#1a3a5c;min-width:160px">&#9889; Acción</th>'}
+      ?'<th>Rack OTA</th><th>Neto -15%</th><th style="min-width:220px">Descuentos y acción</th>'
+      :'<th>Directa</th><th>Walk-in</th><th style="min-width:200px">Instrucción y acción</th>'}
   </tr>`;
 
   let html='';
@@ -530,33 +530,37 @@ function renderTable(){
       const recBgs={'critico':'#FEF0EE','alto':'#FFF3E0','medio':'#FFF8E1','ok':'#F1F8E9','bajo':'#E3F2FD','info':'#F5F5F5'};
       const recColor=recColors[rec.nivel]||'#888';
       const recBg=recBgs[rec.nivel]||'#F5F5F5';
-      const recCell=rec.cambio
-        ? `<td style="background:${recBg};text-align:left;padding:5px 8px">
-            <div style="font-size:10px;font-weight:700;color:${recColor}">
-              ${fmtCOP(rec.precioSugerido)} <span style="font-size:9px;opacity:0.7">(actual ${fmtCOP(rack)})</span>
-            </div>
-            <div style="font-size:9px;color:${recColor};margin-top:1px">${rec.accion}</div>
-           </td>`
-        : `<td style="text-align:left;padding:5px 8px;font-size:10px;color:${recColor}">${rec.accion}</td>`;
+      // Celda unificada: descuentos + recomendación de precio
+      const descText='<span style="font-size:10px;color:'+(desc.geniusOk?'#1A5E1A':'#922B21')+'">'+ac+'</span>';
+      const recPart=rec.cambio
+        ?('<div style="margin-top:4px;padding:4px 6px;border-radius:4px;background:'+recBg+';border-left:2px solid '+recColor+'">'
+          +'<span style="font-size:10px;font-weight:700;color:'+recColor+'">&#9889; Subir a '+fmtCOP(rec.precioSugerido)+'</span>'
+          +'<span style="font-size:9px;color:'+recColor+';margin-left:4px">(actual '+fmtCOP(rack)+')</span>'
+          +'<div style="font-size:9px;color:'+recColor+';margin-top:1px">'+rec.accion+'</div>'
+          +'</div>')
+        :'';
+      const unifiedCell='<td style="text-align:left;padding:5px 8px">'+descText+recPart+'</td>';
       mid=`<td style="font-weight:500;color:${isFeria?'#7D0000':isAlta?'#7D3C00':'#1a1a2e'}">${fmtCOP(rack)}</td>
            <td style="color:#6b7280">${fmtCOP(neto)}</td>
-           <td style="text-align:left;font-size:10px;color:${desc.geniusOk?'#1A5E1A':'#922B21'}">${ac}</td>
-           ${recCell}`;
+           ${unifiedCell}`;
     } else {
       const inst=isFeria?'Feria: OTA T.Alta finde. Sin descuento.':
         isAlta?'T.Alta: NR preferido. No bajar.':
         ocup!==null&&ocup<35?'Ocupacion baja: ofrecer desayuno antes de bajar.':
         'Tarifa estandar. No negociar por debajo.';
       const recDir=getRecomendacionDirecta(sel,temp,ocup);
-      const dirRecCell=recDir.alerta
-        ?('<td style="background:#FEF0EE;text-align:left;padding:5px 8px">'
-          +'<div style="font-size:10px;font-weight:700;color:#922B21">Ocup &gt;80% — Walk-in: '+fmtCOP(recDir.walkin)+'</div>'
-          +'<div style="font-size:9px;color:#922B21">Cobrar +$30.000 sobre tarifa base</div></td>')
-        :('<td style="text-align:left;padding:5px 8px;font-size:10px;color:#555">'+recDir.nota+'</td>');
+      const dirUnified='<td style="text-align:left;padding:5px 8px">'
+        +'<span style="font-size:10px;color:#555">'+inst+'</span>'
+        +(recDir.alerta
+          ?'<div style="margin-top:4px;padding:4px 6px;border-radius:4px;background:#FEF0EE;border-left:2px solid #922B21">'
+            +'<span style="font-size:10px;font-weight:700;color:#922B21">&#9889; Walk-in: cobrar '+fmtCOP(recDir.walkin)+'</span>'
+            +'<div style="font-size:9px;color:#922B21">+$30.000 sobre tarifa base por ocup &gt;80%</div>'
+            +'</div>'
+          :'')
+        +'</td>';
       mid=`<td style="font-weight:500;color:#1A2B4A">${fmtCOP(directa)}</td>
            <td style="color:${ocup!==null&&ocup>80?'#922B21':'#6b7280'}">${fmtCOP(walkin)}${ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':''}</td>
-           <td style="text-align:left;font-size:10px;color:#6b7280">${inst}</td>
-           ${dirRecCell}`;
+           ${dirUnified}`;
     }
 
     
