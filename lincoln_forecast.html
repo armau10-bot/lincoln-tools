@@ -290,6 +290,91 @@ function getMult(ocup,temp){
 }
 function r1k(n){return Math.round(n/1000)*1000;}
 
+function getRecomendacion(tipo, temp, ocup, rack) {
+  // Protocolo Sección 4: reglas de ajuste de rack según ocupación
+  // Aplica sobre el rack de temporada ya calculado
+  const o = ocup ?? null;
+  
+  if (o === null) return {
+    accion: 'Ingresar % ocupación',
+    precioSugerido: null,
+    nivel: 'info',
+    cambio: false,
+  };
+
+  // Rack base de la temporada actual (sin multiplicador)
+  const t = TF[tipo];
+  let rackBase;
+  if      (temp==='feria')    rackBase = t.fe;
+  else if (temp==='alta-fin') rackBase = t.af;
+  else if (temp==='alta')     rackBase = t.as;
+  else if (temp==='baja-fin') rackBase = t.bf;
+  else                         rackBase = t.bs;
+
+  // Aplicar regla de ocupación
+  let mult = 1.0, nivel = 'ok', accion = '', cambio = false;
+
+  if (o > 85) {
+    mult = 1.175; // punto medio del rango 15-20%
+    nivel = 'critico';
+    accion = 'SUBIR +15%–20% en Omnibees. Solo NR. Mínimo 2 noches.';
+    cambio = true;
+  } else if (o > 75) {
+    mult = 1.10;
+    nivel = 'alto';
+    accion = 'SUBIR +10% en Omnibees. Apagar todo excepto Genius.';
+    cambio = true;
+  } else if (o > 65) {
+    mult = 1.05;
+    nivel = 'medio';
+    accion = temp==='baja-fin'||temp==='baja-sem'
+      ? 'SUBIR +5% entre semana en Omnibees. Apagar Escapada.'
+      : 'Rack T.Alta vigente. Sin cambios adicionales.';
+    cambio = temp==='baja-fin'||temp==='baja-sem';
+  } else if (o >= 40) {
+    mult = 1.0;
+    nivel = 'ok';
+    accion = 'Rack base vigente. Sin cambios.';
+    cambio = false;
+  } else {
+    mult = 1.0;
+    nivel = 'bajo';
+    accion = 'Rack sin cambio. Activar Genius + Escapada (T.Baja sem). No tocar precio.';
+    cambio = false;
+  }
+
+  const precioSugerido = cambio ? r1k(rackBase * mult) : rackBase;
+  const diferencia = precioSugerido - rack; // rack es el actual con mult ya aplicado
+
+  return { accion, precioSugerido, rackBase, nivel, cambio, diferencia, mult };
+}
+
+function getRecomendacionDirecta(tipo, temp, ocup) {
+  // Protocolo Sección 2: directa tiene precio fijo por temporada
+  // Solo ajuste: walk-in ocup>80% → +$30K
+  const t = TF[tipo];
+  const base = (temp==='alta'||temp==='alta-fin'||temp==='feria') ? t.da : t.db;
+  
+  if (ocup === null) return {
+    precio: base,
+    walkin: base,
+    nota: 'Ingresar % ocupación',
+    alerta: false,
+  };
+
+  const walkin = ocup > 80 ? base + 30000 : base;
+  const alerta = ocup > 80;
+  const nota = temp==='feria'
+    ? 'Feria: usar T.Alta finde OTA. Sin descuento. No negociar.'
+    : temp==='alta'||temp==='alta-fin'
+    ? 'T.Alta: precio fijo. Sin descuentos. No negociar.'
+    : ocup < 35
+    ? 'Ocup. baja: precio fijo. Ofrecer desayuno antes de bajar.'
+    : 'Tarifa estándar. No negociar por debajo.';
+
+  return { precio: base, walkin, nota, alerta };
+}
+
 function getAlerta(temp, prevTemp, ocup) {
   // Detecta transiciones que requieren acción en Omnibees o Extranet
   if (!prevTemp || prevTemp === temp) return null;
@@ -410,8 +495,8 @@ function renderTable(){
   document.getElementById('thead').innerHTML=`<tr>
     <th style="text-align:left">Fecha</th><th>Temporada</th><th>Ocup%</th>
     ${isOta
-      ?'<th>Rack OTA</th><th>Neto -15%</th><th>Descuentos hoy</th>'
-      :'<th>Directa</th><th>Walk-in</th><th>Instruccion recepcion</th>'}
+      ?'<th>Rack OTA</th><th>Neto -15%</th><th style="min-width:220px">Descuentos y acción</th>'
+      :'<th>Directa</th><th>Walk-in</th><th style="min-width:200px">Instrucción y acción</th>'}
   </tr>`;
 
   let html='';
@@ -440,17 +525,57 @@ function renderTable(){
     let mid='';
     if(isOta){
       const ac=desc.geniusOk?(desc.escapadaOk?'Genius + Escapada':'Genius activo'):'Sin Genius (Feria)';
+      const rec=getRecomendacion(sel,temp,ocup,rack);
+      const recColors={'critico':'#922B21','alto':'#E65100','medio':'#F57F17','ok':'#1A5E1A','bajo':'#1565C0','info':'#888'};
+      const recBgs={'critico':'#FEF0EE','alto':'#FFF3E0','medio':'#FFF8E1','ok':'#F1F8E9','bajo':'#E3F2FD','info':'#F5F5F5'};
+      const recColor=recColors[rec.nivel]||'#888';
+      const recBg=recBgs[rec.nivel]||'#F5F5F5';
+      const recCell=rec.cambio
+        ? `<td style="background:${recBg};text-align:left;padding:5px 8px">
+            <div style="font-size:10px;font-weight:700;color:${recColor}">
+              ${fmtCOP(rec.precioSugerido)} <span style="font-size:9px;opacity:0.7">(actual ${fmtCOP(rack)})</span>
+            </div>
+            <div style="font-size:9px;color:${recColor};margin-top:1px">${rec.accion}</div>
+           </td>`
+        : `<td style="text-align:left;padding:5px 8px;font-size:10px;color:${recColor}">${rec.accion}</td>`;
+      // Celda unificada: estado descuentos + alerta precio si hay cambio requerido
+      const unifiedOTA='<td style="text-align:left;padding:5px 8px">'
+        +'<span style="font-size:10px;color:'+(desc.geniusOk?'#1A5E1A':'#922B21')+'">'+ac+'</span>'
+        +(rec.cambio
+          ?'<div style="margin-top:4px;padding:4px 6px;border-radius:4px;background:'+recBg+';border-left:2px solid '+recColor+'">'
+           +'<span style="font-size:10px;font-weight:700;color:'+recColor+'">&#9889; Subir a '+fmtCOP(rec.precioSugerido)+'</span>'
+           +'<span style="font-size:9px;color:'+recColor+';margin-left:4px">(actual '+fmtCOP(rack)+')</span>'
+           +'<div style="font-size:9px;color:'+recColor+';margin-top:1px">'+rec.accion+'</div>'
+           +'</div>'
+          :'')
+        +'</td>';
       mid=`<td style="font-weight:500;color:${isFeria?'#7D0000':isAlta?'#7D3C00':'#1a1a2e'}">${fmtCOP(rack)}</td>
            <td style="color:#6b7280">${fmtCOP(neto)}</td>
-           <td style="text-align:left;font-size:10px;color:${desc.geniusOk?'#1A5E1A':'#922B21'}">${ac}</td>`;
+           ${unifiedOTA}`;
     } else {
       const inst=isFeria?'Feria: OTA T.Alta finde. Sin descuento.':
         isAlta?'T.Alta: NR preferido. No bajar.':
         ocup!==null&&ocup<35?'Ocupacion baja: ofrecer desayuno antes de bajar.':
         'Tarifa estandar. No negociar por debajo.';
+      const recDir=getRecomendacionDirecta(sel,temp,ocup);
+      const dirRecCell=recDir.alerta
+        ?('<td style="background:#FEF0EE;text-align:left;padding:5px 8px">'
+          +'<div style="font-size:10px;font-weight:700;color:#922B21">Ocup &gt;80% — Walk-in: '+fmtCOP(recDir.walkin)+'</div>'
+          +'<div style="font-size:9px;color:#922B21">Cobrar +$30.000 sobre tarifa base</div></td>')
+        :('<td style="text-align:left;padding:5px 8px;font-size:10px;color:#555">'+recDir.nota+'</td>');
+      // Celda directa unificada
+      const unifiedDir='<td style="text-align:left;padding:5px 8px">'
+        +'<span style="font-size:10px;color:#555">'+inst+'</span>'
+        +(recDir.alerta
+          ?'<div style="margin-top:4px;padding:4px 6px;border-radius:4px;background:#FEF0EE;border-left:2px solid #922B21">'
+           +'<span style="font-size:10px;font-weight:700;color:#922B21">&#9889; Walk-in: cobrar '+fmtCOP(recDir.walkin)+'</span>'
+           +'<div style="font-size:9px;color:#922B21">+$30.000 sobre base por ocup &gt;80%</div>'
+           +'</div>'
+          :'')
+        +'</td>';
       mid=`<td style="font-weight:500;color:#1A2B4A">${fmtCOP(directa)}</td>
            <td style="color:${ocup!==null&&ocup>80?'#922B21':'#6b7280'}">${fmtCOP(walkin)}${ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':''}</td>
-           <td style="text-align:left;font-size:10px;color:#6b7280">${inst}</td>`;
+           ${unifiedDir}`;
     }
 
     
@@ -481,13 +606,22 @@ function renderTable(){
         const dir=getDirecta(t,temp,ocup,false);
         const wlk=getDirecta(t,temp,ocup,true);
         const isSuite=t.includes('Suite');
-        return`<tr style="background:${i%2===0?'#f4f6f8':'#fff'}">
-          <td style="font-weight:${isSuite?500:400};color:${isSuite?'#1A2B4A':'#1a1a2e'};padding:4px 6px">${t}</td>
-          <td style="text-align:right;font-weight:500;padding:4px 6px">${fmtCOP(r)}</td>
-          <td style="text-align:right;color:#6b7280;padding:4px 6px">${fmtCOP(r1k(r*0.85))}</td>
-          <td style="text-align:right;color:#1A2B4A;padding:4px 6px">${fmtCOP(dir)}</td>
-          <td style="text-align:right;color:${ocup!==null&&ocup>80?'#922B21':'#6b7280'};padding:4px 6px">${fmtCOP(wlk)}</td>
-        </tr>`;
+        const recT=getRecomendacion(t,temp,ocup,r);
+        const recTcolor=recT.cambio?({'critico':'#922B21','alto':'#E65100','medio':'#F57F17'}[recT.nivel]||'#555'):'#aaa';
+        const recTcell=recT.cambio
+          ?`<td style="text-align:left;padding:4px 6px;font-size:10px">
+              <b style="color:${recTcolor}">${fmtCOP(recT.precioSugerido)}</b>
+              <span style="color:${recTcolor};font-size:9px"> ↑${Math.round((recT.mult-1)*100)}%</span>
+            </td>`
+          :`<td style="text-align:left;padding:4px 6px;font-size:9px;color:#aaa">Sin cambio</td>`;
+        return\`<tr style="background:\${i%2===0?'#f4f6f8':'#fff'}">
+          <td style="font-weight:\${isSuite?500:400};color:\${isSuite?'#1A2B4A':'#1a1a2e'};padding:4px 6px">\${t}</td>
+          <td style="text-align:right;font-weight:500;padding:4px 6px">\${fmtCOP(r)}</td>
+          <td style="text-align:right;color:#6b7280;padding:4px 6px">\${fmtCOP(r1k(r*0.85))}</td>
+          <td style="text-align:right;color:#1A2B4A;padding:4px 6px">\${fmtCOP(dir)}</td>
+          <td style="text-align:right;color:\${ocup!==null&&ocup>80?'#922B21':'#6b7280'};padding:4px 6px">\${fmtCOP(wlk)}</td>
+          \${recTcell}
+        </tr>\`;
       }).join('');
 
       html+=`<tr style="background:${rowBg}"><td colspan="6" style="padding:8px 12px">
