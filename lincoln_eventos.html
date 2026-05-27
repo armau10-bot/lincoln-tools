@@ -248,21 +248,24 @@ function getDesc(imp){
 }
 
 let eventos=[
-  {id:'E001',nombre:'Feid — Concierto',fecha:'2026-06-20',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'songkick.com'},
-  {id:'E002',nombre:'Carlos Vives',fecha:'2026-05-27',venue:'Atanasio Girardot',impacto:'alto',ocup:10,fuente:'ticketmaster.co'},
-  {id:'E003',nombre:'Colombiamoda 2026',fecha:'2026-07-03',venue:'Plaza Mayor',impacto:'medio',ocup:null,fuente:'colombiamoda.com'},
-  {id:'E004',nombre:'Altavoz Ciudad',fecha:'2026-06-04',venue:'Atanasio Girardot',impacto:'medio',ocup:30,fuente:'visitarmedellin.com'},
+  // ✅ CONFIRMADOS CON FUENTE OFICIAL
   {id:'E005',nombre:'FERIA DE LAS FLORES',fecha:'2026-07-31',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
   {id:'E006',nombre:'Desfile Silleteros (Feria)',fecha:'2026-08-07',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
-  {id:'E007',nombre:'Arctic Monkeys',fecha:'2026-06-19',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'songkick.com'},
-  {id:'E008',nombre:'Arcangel',fecha:'2026-06-17',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'songkick.com'},
-  {id:'E009',nombre:'Fiesta Libro y Cultura',fecha:'2026-06-03',venue:'Plaza Mayor',impacto:'bajo',ocup:null,fuente:'ferialibrosmedellin.com'},
-  {id:'E010',nombre:'Festival Altavoz Intl.',fecha:'2026-06-20',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'festivaltlvz.com'},
-  {id:'E011',nombre:'Festiafro',fecha:'2026-06-27',venue:'Atanasio Girardot',impacto:'medio',ocup:null,fuente:'visitarmedellin.com'},
-  {id:'E012',nombre:'Rivales Festival',fecha:'2026-06-03',venue:'Atanasio Girardot',impacto:'medio',ocup:null,fuente:'songkick.com'},
-  {id:'E013',nombre:'Morat',fecha:'2026-05-30',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'ticketmaster.co'},
-  {id:'E014',nombre:'Festival La Solar',fecha:'2026-05-02',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'lasolarfest.com'},
-  {id:'E015',nombre:'Festival Altavoz Nov.',fecha:'2026-11-06',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'festivaltlvz.com'},
+  {id:'E013',nombre:'Morat',fecha:'2026-05-30',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'ticketmaster.co — confirmado'},
+  {id:'E001',nombre:'Feid — Concierto',fecha:'2026-06-20',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'novushoteles.com — confirmado'},
+  {id:'E007',nombre:'Arctic Monkeys',fecha:'2026-08-08',venue:'Estadio Cincuentenario',impacto:'alto',ocup:null,fuente:'novushoteles.com — confirmado (NO es Atanasio)'},
+  {id:'E008',nombre:'Arcangel — Noche 1',fecha:'2026-09-04',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'infobae.com — confirmado'},
+  {id:'E008B',nombre:'Arcangel — Noche 2',fecha:'2026-09-05',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'infobae.com — sold out, segunda fecha agregada'},
+  {id:'E002',nombre:'Carlos Vives',fecha:'2026-10-17',venue:'Estadio Polideportivo Envigado',impacto:'medio',ocup:null,fuente:'ticketlive.co — confirmado 17 oct'},
+  {id:'E003',nombre:'Colombiamoda 2026',fecha:'2026-07-28',venue:'Plaza Mayor',impacto:'medio',ocup:null,fuente:'colombiamoda.com oficial — 28-30 jul 2026'},
+  // ✅ PASADO — ya ocurrió
+  {id:'E014',nombre:'Festival La Solar (PASADO)',fecha:'2026-05-02',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'confirmado — ya pasó'},
+  // ⚠️ SIN VERIFICAR — revisar o eliminar manualmente
+  {id:'E004',nombre:'Altavoz Ciudad ⚠️ FECHA SIN VERIFICAR',fecha:'2026-06-04',venue:'Atanasio Girardot',impacto:'medio',ocup:null,fuente:'Altavoz normalmente oct-nov — verificar'},
+  {id:'E009',nombre:'Fiesta Libro y Cultura ⚠️ FECHA SIN VERIFICAR',fecha:'2026-06-03',venue:'Plaza Mayor',impacto:'bajo',ocup:null,fuente:'Feria Libro Medellín — verificar fecha exacta'},
+  {id:'E010',nombre:'Festival Altavoz Intl. ⚠️ FECHA SIN VERIFICAR',fecha:'2026-11-01',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'Altavoz Intl. suele ser oct-nov — verificar'},
+  {id:'E011',nombre:'Festiafro ⚠️ FECHA SIN VERIFICAR',fecha:'2026-06-27',venue:'Atanasio Girardot',impacto:'medio',ocup:null,fuente:'No confirmado para 2026 — verificar'},
+  {id:'E012',nombre:'Rivales Festival ⚠️ FECHA SIN VERIFICAR',fecha:'2026-06-03',venue:'Atanasio Girardot',impacto:'medio',ocup:null,fuente:'No confirmado para 2026 — verificar'},
 ];
 
 let filtroActual='todos',expandedId=null;
