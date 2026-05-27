@@ -140,9 +140,29 @@
 <body>
 <div class="container">
 
-  <div class="hdr">
-    <h1>Hotel Lincoln — Forecast operativo 30 dias</h1>
-    <span id="hdr-date"></span>
+  <div class="hdr" style="background:linear-gradient(135deg,#0d1f3c 0%,#1A2B4A 60%,#1e3a5f 100%);padding:0">
+    <div style="display:flex;align-items:stretch;width:100%">
+      <!-- Logo zone -->
+      <div style="background:rgba(201,168,76,0.15);border-right:1px solid rgba(201,168,76,0.3);padding:14px 22px;display:flex;align-items:center;flex-shrink:0">
+        <div style="text-align:center">
+          <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#C9A84C;letter-spacing:3px;line-height:1">LINCOLN</div>
+          <div style="font-size:7px;color:rgba(201,168,76,0.7);letter-spacing:4px;margin-top:2px">HOTEL</div>
+          <div style="width:32px;height:1px;background:#C9A84C;margin:5px auto"></div>
+          <div style="font-size:6px;color:rgba(255,255,255,0.4);letter-spacing:2px">LAURELES</div>
+        </div>
+      </div>
+      <!-- Title zone -->
+      <div style="padding:14px 20px;flex:1">
+        <div style="font-size:7px;color:#C9A84C;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px">Revenue Management</div>
+        <h1 style="font-size:14px;font-weight:400;color:#fff;margin:0;letter-spacing:0.3px">Forecast Operativo — 30 Días</h1>
+        <div style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px">Rack OTA · Directa · Alertas de parametrización</div>
+      </div>
+      <!-- Date zone -->
+      <div style="padding:14px 20px;text-align:right;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px">HOY</div>
+        <div id="hdr-date" style="font-size:12px;color:#C9A84C;font-weight:500"></div>
+      </div>
+    </div>
   </div>
 
   <div class="body-wrap">
@@ -190,18 +210,18 @@
 <script>
 const TIPOS=["Doble 1p","Doble 2p","Doble2c 1p","Doble2c 2p","2CG 2p","2CG 3p","2CG 4p","Suite Jr 1p","Suite Jr 2p"];
 const TF={
-  // bs=BajaSem, bf=BajaFinde(=BajaSem protocolo), as=AltaSem, af=AltaFinde, fe=Feria
-  // db=DirectaBaja, da=DirectaAlta
-  // Fuente: Protocolo Tarifas Lincoln 2026 v2 — tabla Sección 1
-  "Doble 1p":   {bs:305000,bf:305000,as:430000,af:524600,  fe:750000, db:250000,da:380000},
-  "Doble 2p":   {bs:330000,bf:330000,as:480000,af:585600,  fe:820000, db:310000,da:450000},
-  "Doble2c 1p": {bs:340000,bf:340000,as:455000,af:555100,  fe:860000, db:310000,da:450000},
-  "Doble2c 2p": {bs:380000,bf:380000,as:510000,af:622200,  fe:920000, db:400000,da:550000},
-  "2CG 2p":     {bs:430000,bf:430000,as:570000,af:695400,  fe:980000, db:400000,da:550000},
-  "2CG 3p":     {bs:490000,bf:490000,as:645000,af:786900,  fe:1060000,db:490000,da:660000},
-  "2CG 4p":     {bs:540000,bf:540000,as:720000,af:878400,  fe:1140000,db:490000,da:660000},
-  "Suite Jr 1p":{bs:490000,bf:490000,as:750000,af:900000,  fe:1065000,db:520000,da:750000},
-  "Suite Jr 2p":{bs:510000,bf:510000,as:780000,af:951600,  fe:1210000,db:600000,da:850000},
+  // bs=T.BajaSem · bf=T.BajaFinde · as=T.AltaSem · af=T.AltaFinde · fe=Feria
+  // db=DirectaBaja · da=DirectaAlta
+  // Fuente: Protocolo Tarifas Lincoln 2026 v2 — Sección 1, tabla aprobada
+  "Doble 1p":   {bs:305000,bf:380000,as:430000,af:524600,  fe:750000, db:250000,da:380000},
+  "Doble 2p":   {bs:330000,bf:428000,as:480000,af:585600,  fe:820000, db:310000,da:450000},
+  "Doble2c 1p": {bs:340000,bf:415000,as:455000,af:555100,  fe:860000, db:310000,da:450000},
+  "Doble2c 2p": {bs:380000,bf:464000,as:510000,af:622200,  fe:920000, db:400000,da:550000},
+  "2CG 2p":     {bs:430000,bf:525000,as:570000,af:695400,  fe:980000, db:400000,da:550000},
+  "2CG 3p":     {bs:490000,bf:598000,as:645000,af:786900,  fe:1060000,db:490000,da:660000},
+  "2CG 4p":     {bs:540000,bf:671000,as:720000,af:878400,  fe:1140000,db:490000,da:660000},
+  "Suite Jr 1p":{bs:490000,bf:671000,as:750000,af:900000,  fe:1065000,db:520000,da:750000},
+  "Suite Jr 2p":{bs:510000,bf:732000,as:800000,af:951600,  fe:1210000,db:600000,da:850000},
 };
 
 function parseLD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
@@ -269,6 +289,39 @@ function getMult(ocup,temp){
   return 1.00;               // piso: rack base sin modificar (nunca baja)
 }
 function r1k(n){return Math.round(n/1000)*1000;}
+
+function getAlerta(temp, prevTemp, ocup) {
+  // Detecta transiciones que requieren acción en Omnibees o Extranet
+  if (!prevTemp || prevTemp === temp) return null;
+  
+  const acciones = {
+    // Entrando a Feria
+    'baja-sem→feria': {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria en Omnibees, solo NR'},
+    'baja-fin→feria': {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria en Omnibees, solo NR'},
+    'alta→feria':     {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, cargar tarifa Feria en Omnibees'},
+    'alta-fin→feria': {tipo:'CRÍTICA', msg:'Inicio Feria de las Flores — excluir Genius en Extranet, cargar tarifa Feria en Omnibees'},
+    // Saliendo de Feria
+    'feria→alta':     {tipo:'ALTA', msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta en Omnibees'},
+    'feria→alta-fin': {tipo:'ALTA', msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta finde en Omnibees'},
+    'feria→baja-sem': {tipo:'ALTA', msg:'Fin Feria — reactivar Genius y Escapada, cargar tarifas T.Baja en Omnibees'},
+    // Entrando a T.Alta
+    'baja-sem→alta':     {tipo:'MEDIA', msg:'Inicio T.Alta — apagar Escapada en Omnibees/Extranet, cargar tarifas T.Alta sem'},
+    'baja-fin→alta':     {tipo:'MEDIA', msg:'Inicio T.Alta — apagar Escapada, cargar tarifas T.Alta sem en Omnibees'},
+    'baja-sem→alta-fin': {tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees'},
+    'baja-fin→alta-fin': {tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees'},
+    // Saliendo de T.Alta
+    'alta→baja-sem':     {tipo:'MEDIA', msg:'Fin T.Alta — reactivar Escapada (máx -10%), cargar tarifas T.Baja sem en Omnibees'},
+    'alta-fin→baja-sem': {tipo:'MEDIA', msg:'Fin T.Alta — reactivar Escapada (máx -10%), cargar tarifas T.Baja sem en Omnibees'},
+    'alta→baja-fin':     {tipo:'INFO',  msg:'Transición a T.Baja finde — Escapada apagada en finde, tarifas finde en Omnibees'},
+    'alta-fin→baja-fin': {tipo:'INFO',  msg:'Transición a T.Baja finde — Escapada apagada, tarifas finde en Omnibees'},
+    // Finde → semana y viceversa dentro de T.Baja
+    'baja-fin→baja-sem': {tipo:'INFO',  msg:'Lunes: transición finde→semana. Genius+Escapada activos. Revisar rack T.Baja sem en Omnibees'},
+    'baja-sem→baja-fin': {tipo:'INFO',  msg:'Viernes: transición semana→finde. Apagar Escapada. Cargar rack T.Baja finde en Omnibees'},
+  };
+  
+  const key = prevTemp + '→' + temp;
+  return acciones[key] || null;
+}
 function fmtCOP(n){return'$'+Math.round(n).toLocaleString('es-CO');}
 
 function getDesc(temp,ocup){
@@ -362,6 +415,7 @@ function renderTable(){
   </tr>`;
 
   let html='';
+  let prevTemp = null;
   days.forEach(d=>{
     const ocup=ocups[d]??null,temp=getTemp(d);
     const tc=TC[temp],mult=getMult(ocup,temp);
@@ -398,6 +452,22 @@ function renderTable(){
            <td style="color:${ocup!==null&&ocup>80?'#922B21':'#6b7280'}">${fmtCOP(walkin)}${ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':''}</td>
            <td style="text-align:left;font-size:10px;color:#6b7280">${inst}</td>`;
     }
+
+    
+    // ── Alerta cambio de temporada ────────────────────────────────────
+    const alerta=getAlerta(temp,prevTemp,ocup);
+    if(alerta){
+      const AC={'CRITICA':{bg:'#FDECEA',color:'#C62828',icon:'\uD83D\uDD34'},
+                'ALTA':{bg:'#FFF3E0',color:'#E65100',icon:'\uD83D\uDFE0'},
+                'MEDIA':{bg:'#FFF8E1',color:'#F57F17',icon:'\uD83D\uDFE1'},
+                'INFO':{bg:'#E8F5E9',color:'#2E7D32',icon:'\uD83D\uDFE2'}};
+      const ac=AC[alerta.tipo]||AC['INFO'];
+      html+='<tr style="background:'+ac.bg+'"><td colspan="6" style="padding:6px 14px;border-bottom:1px solid rgba(0,0,0,0.08)">'
+        +'<span style="font-size:10px;font-weight:700;color:'+ac.color+'">'+ac.icon+' ACCIÓN OMNIBEES — '+alerta.tipo+': </span>'
+        +'<span style="font-size:10px;color:'+ac.color+'">'+alerta.msg+'</span>'
+        +'</td></tr>';
+    }
+    prevTemp=temp;
 
     html+=`<tr style="background:${rowBg};cursor:pointer" onclick="toggleExp('${d}')">
       <td><span style="color:#6b7280;font-size:10px;margin-right:4px">${dow}</span>${d.slice(5)}</td>
