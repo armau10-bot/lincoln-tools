@@ -113,8 +113,9 @@ table.tf tr:nth-child(even){background:var(--bg2)}
 .rpt-kpi-val{font-size:18px;font-weight:500}
 .rpt-kpi-sub{font-size:10px;color:var(--tx2);margin-top:2px}
 .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-.chart-box{background:var(--bg2);border-radius:var(--r2);padding:14px}
+.chart-box{background:var(--bg2);border-radius:var(--r2);padding:14px;min-height:0}
 .chart-box h4{font-size:11px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.chart-wrap{position:relative;height:200px;width:100%}
 .analysis-box{background:linear-gradient(135deg,#0d1f3c,#1A2B4A);border-radius:var(--r2);padding:16px;margin-bottom:14px;color:#fff}
 .analysis-box h4{font-size:12px;font-weight:500;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
 .analysis-item{font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:6px;padding-left:12px;border-left:2px solid var(--gold)}
@@ -287,11 +288,11 @@ table.tf tr:nth-child(even){background:var(--bg2)}
   <div class="chart-grid">
     <div class="chart-box">
       <h4>Ocupación promedio por snapshot</h4>
-      <canvas id="chartOcup" height="180"></canvas>
+      <div class="chart-wrap"><canvas id="chartOcup"></canvas></div>
     </div>
     <div class="chart-box">
       <h4>Rack OTA promedio (Doble 2p)</h4>
-      <canvas id="chartRack" height="180"></canvas>
+      <div class="chart-wrap"><canvas id="chartRack"></canvas></div>
     </div>
   </div>
 
@@ -454,12 +455,21 @@ function getRackConEvento(tipo,temp,evento){
 }
 
 function getMult(ocup,esEvento){
+  // Protocolo Operativo Lincoln 2026 — Sección 5
   if(ocup===null) return 1;
-  if(ocup>85) return 1.175;
-  if(ocup>75) return 1.10;
-  if(ocup>65) return 1.05;
-  // En eventos el precio base es el piso — nunca baja
-  return 1.00;
+  if(esEvento){
+    // Eventos: el rack del evento es el PISO — nunca baja
+    // Subida solo con alta demanda comprobada
+    if(ocup>85) return 1.175; // >85%: precio máximo del período
+    if(ocup>70) return 1.10;  // >70%: subir 10% — demanda alta confirmada
+    return 1.00;               // ≤70%: mantener precio evento (sin cambio)
+  } else {
+    // Temporada sin evento: protocolo de ocupación general
+    if(ocup>85) return 1.175; // >85%: +15-20%
+    if(ocup>75) return 1.10;  // >75%: +10%
+    if(ocup>65) return 1.05;  // >65%: +5% entre semana
+    return 1.00;               // ≤65%: rack base (nunca baja)
+  }
 }
 
 function getDirecta(tipo,temp,ocup,walkin){
@@ -500,6 +510,11 @@ function getRecomendacion(tipo,temp,ocup,evento){
   if(ocup>75){
     return{cambio:true,nivel:'alto',precioSugerido:r1k(baseRack*1.10),
       accion:(evento?'Evento +75%: ':'SUBIR ')+'+10% en Omnibees. Solo Genius activo.'};
+  }
+  // Para eventos: umbral de subida es >70% (NO >65% como en temporada sin evento)
+  if(ocup>70&&evento){
+    return{cambio:true,nivel:'alto',precioSugerido:r1k(baseRack*1.10),
+      accion:'Evento >70%: subir +10% en Omnibees. Demanda alta confirmada. Solo NR.'};
   }
   if(ocup>65&&!evento){
     return{cambio:true,nivel:'medio',precioSugerido:r1k(baseRack*1.05),
@@ -1165,7 +1180,7 @@ function renderReporte(){
 
   const chartDefaults = {
     responsive:true,
-    maintainAspectRatio:false,
+    maintainAspectRatio:false,  // El wrapper .chart-wrap define la altura
     plugins:{legend:{display:false}},
     scales:{
       x:{ticks:{font:{size:9},color:'#6b7280',maxRotation:30},grid:{color:'rgba(0,0,0,0.05)'}},
