@@ -455,20 +455,22 @@ function getRackConEvento(tipo,temp,evento){
 }
 
 function getMult(ocup,esEvento){
-  // Protocolo Operativo Lincoln 2026 — Sección 5
+  // Protocolo Operativo Lincoln 2026 — actualizado
+  // La ocupación es el disparador principal — sin tope de días
+  // Razón: hotel de 36 hab. → señal de demanda real en cualquier horizonte
   if(ocup===null) return 1;
   if(esEvento){
-    // Eventos: el rack del evento es el PISO — nunca baja
-    // Subida solo con alta demanda comprobada
-    if(ocup>85) return 1.175; // >85%: precio máximo del período
-    if(ocup>70) return 1.10;  // >70%: subir 10% — demanda alta confirmada
-    return 1.00;               // ≤70%: mantener precio evento (sin cambio)
+    // Eventos: rack del evento es el PISO, nunca baja
+    // Subida activada por ocupación sin importar días restantes
+    if(ocup>85) return 1.175; // >85%: precio máximo
+    if(ocup>70) return 1.10;  // >70%: +10% — demanda alta confirmada
+    return 1.00;               // ≤70%: mantener precio evento
   } else {
-    // Temporada sin evento: protocolo de ocupación general
+    // Sin evento: protocolo de ocupación general
     if(ocup>85) return 1.175; // >85%: +15-20%
     if(ocup>75) return 1.10;  // >75%: +10%
-    if(ocup>65) return 1.05;  // >65%: +5% entre semana
-    return 1.00;               // ≤65%: rack base (nunca baja)
+    if(ocup>65) return 1.05;  // >65%: +5%
+    return 1.00;               // ≤65%: rack base, nunca baja
   }
 }
 
@@ -511,10 +513,11 @@ function getRecomendacion(tipo,temp,ocup,evento){
     return{cambio:true,nivel:'alto',precioSugerido:r1k(baseRack*1.10),
       accion:(evento?'Evento +75%: ':'SUBIR ')+'+10% en Omnibees. Solo Genius activo.'};
   }
-  // Para eventos: umbral de subida es >70% (NO >65% como en temporada sin evento)
+  // Eventos: ocupación >70% activa subida SIN importar días restantes
+  // Lógica: hotel 36 hab. — señal de demanda real en cualquier horizonte temporal
   if(ocup>70&&evento){
     return{cambio:true,nivel:'alto',precioSugerido:r1k(baseRack*1.10),
-      accion:'Evento >70%: subir +10% en Omnibees. Demanda alta confirmada. Solo NR.'};
+      accion:'Ocup >70% con evento: subir +10% en Omnibees. Solo NR. Válido en cualquier horizonte.'};
   }
   if(ocup>65&&!evento){
     return{cambio:true,nivel:'medio',precioSugerido:r1k(baseRack*1.05),
@@ -568,10 +571,15 @@ function getAccionEvento(dias,imp,ocup){
     return 'Ajuste dinámico. Monitorear semanal.';
   }
   if(dias<=59){
-    if((imp==='maximo'||imp==='alto')&&o<15) return 'Precio posiblemente alto. Bajar máx 10%.';
-    return 'Monitorear pickup semanal. Mantener precio evento.';
+    if(o>85) return 'Ocup >85% a '+dias+'d: precio máximo. Solo NR absoluto.';
+    if(o>70) return 'Ocup >70% a '+dias+'d: subir +10% en Omnibees. Solo NR.';
+    if((imp==='maximo'||imp==='alto')&&o<15) return 'Ocup <15% a '+dias+'d: precio posiblemente alto. Bajar máx 10%. Nunca volver al precio base.';
+    return 'Monitorear pickup diario. Sin cambios si el llenado es normal.';
   }
-  return 'Cargar precio evento preventivo. Solo NR desde el primer día.';
+  // 60+ días: disparador es ocupación, no el tiempo
+  if(o>85) return 'Ocup >85% a '+dias+'d: precio máximo YA. Solo NR absoluto. Demanda real confirmada.';
+  if(o>70) return 'Ocup >70% a '+dias+'d: subir +10% en Omnibees. Solo NR. Demanda alta sin importar el horizonte.';
+  return 'Cargar precio evento preventivo. Solo NR (No Reembolsable) desde el primer día. Sin pickup a esta distancia es normal — NUNCA bajar.';
 }
 
 // ════════════════════════════════════════════════════════════════
