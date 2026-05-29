@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Lincoln — Revenue Management</title>
+<style>
+:root{--bg:#fff;--bg2:#f4f6f8;--bg3:#eef0f3;--tx:#1a1a2e;--tx2:#6b7280;--bd:rgba(0,0,0,0.10);--bd2:rgba(0,0,0,0.18);--r:8px;--r2:12px;--gold:#C9A84C;--navy:#1A2B4A;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SF Mono','Fira Code',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:13px;color:var(--tx);background:#edf0f5;min-height:100vh;padding:16px 12px}
+.wrap{max-width:1020px;margin:0 auto}
+
+/* ── HEADER ── */
+.hdr{background:linear-gradient(135deg,#0d1f3c 0%,#1A2B4A 60%,#1e3a5f 100%);border-radius:var(--r2) var(--r2) 0 0;display:flex;align-items:stretch}
+.hdr-logo{background:rgba(201,168,76,0.15);border-right:1px solid rgba(201,168,76,0.3);padding:12px 18px;display:flex;align-items:center;flex-shrink:0}
+.logo-name{font-family:Georgia,serif;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:3px;line-height:1}
+.logo-sub{font-size:7px;color:rgba(201,168,76,0.7);letter-spacing:4px;margin-top:2px;text-align:center}
+.logo-line{width:26px;height:1px;background:var(--gold);margin:4px auto}
+.logo-city{font-size:6px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-align:center}
+.hdr-title{padding:12px 16px;flex:1}
+.hdr-label{font-size:7px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:2px}
+.hdr-h1{font-size:14px;font-weight:400;color:#fff;letter-spacing:.3px}
+.hdr-desc{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px}
+.hdr-date{padding:12px 16px;text-align:right;display:flex;flex-direction:column;justify-content:center;flex-shrink:0}
+.hdr-date-lbl{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px}
+.hdr-date-val{font-size:12px;color:var(--gold);font-weight:500;margin-top:2px}
+
+/* ── TABS ── */
+.tab-bar{display:flex;background:var(--navy);border-bottom:2px solid rgba(201,168,76,0.3);padding:0 16px}
+.tab-btn{padding:10px 20px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;font-size:12px;font-weight:500;font-family:var(--font);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn.active{color:#fff;border-bottom:2px solid var(--gold)}
+.tab-btn:hover:not(.active){color:rgba(255,255,255,0.8)}
+.tab-badge{display:inline-block;background:var(--gold);color:var(--navy);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:6px}
+
+/* ── BODY ── */
+.body{background:var(--bg);border:0.5px solid var(--bd);border-top:none;border-radius:0 0 var(--r2) var(--r2);padding:14px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── SHARED ── */
+button{font-family:var(--font);cursor:pointer;transition:opacity .15s}
+button:hover{opacity:.85}
+.btn-primary{background:var(--navy);color:#fff;border:none;padding:6px 16px;border-radius:var(--r);font-size:12px;font-weight:500}
+.btn-sec{background:transparent;color:var(--tx);border:0.5px solid var(--bd2);padding:6px 14px;border-radius:var(--r);font-size:12px}
+.btn-danger{background:transparent;color:#C62828;border:0.5px solid #C62828;padding:3px 10px;border-radius:var(--r);font-size:10px}
+input[type=text],input[type=date],input[type=number],select,textarea{font-family:var(--font);border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--tx);font-size:11px;padding:5px 8px}
+textarea{resize:vertical;font-family:var(--mono);line-height:1.5}
+.badge{display:inline-block;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600}
+.disc-pill{display:inline-block;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:500;margin:2px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:9px 12px}
+.kpi-lbl{font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.kpi-val{font-size:14px;font-weight:500}
+.info-bar{background:linear-gradient(90deg,#EAF3DE,#F0F7E8);border-radius:var(--r);border-left:3px solid #2E7D32;padding:6px 12px;font-size:10px;color:#3B6D11;margin-bottom:10px}
+.scroll{max-height:520px;overflow-y:auto;border:0.5px solid var(--bd);border-radius:0 0 var(--r2) var(--r2)}
+table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+thead th{background:var(--navy);color:#fff;padding:8px 7px;text-align:center;font-weight:500;font-size:10px;position:sticky;top:0;z-index:2}
+thead th:first-child{text-align:left}
+td{padding:6px 7px;border-bottom:0.5px solid var(--bd);text-align:center;vertical-align:top}
+td:first-child{text-align:left;font-weight:500}
+tbody tr:hover td{background:var(--bg2)!important}
+.hint{font-size:10px;color:var(--tx2);margin-top:8px;text-align:center}
+.exp-inner{padding:12px;border-radius:var(--r);background:var(--bg);border:0.5px solid var(--bd);margin:4px 0 8px}
+
+/* ── FORECAST SPECIFIC ── */
+.paste-panel{background:var(--bg2);border:0.5px solid var(--bd);border-radius:var(--r2);padding:12px;margin-bottom:12px}
+.paste-panel h3{font-size:12px;font-weight:500;margin-bottom:4px}
+.paste-panel p{font-size:11px;color:var(--tx2);margin-bottom:7px}
+.btn-row{display:flex;gap:8px;margin-top:7px;align-items:center}
+.msg-ok{font-size:11px;color:#1A5E1A}
+.controls{display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.controls label{font-size:11px;color:var(--tx2);margin-right:4px}
+
+/* ── EVENTO ROW EN FORECAST ── */
+.ev-row-badge{display:inline-flex;align-items:center;gap:4px;background:#FEF0EE;border:0.5px solid #922B21;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;color:#7D0000}
+.omnibees-check{display:inline-flex;align-items:center;gap:4px;cursor:pointer;user-select:none;font-size:10px;color:#C62828;font-weight:600}
+.omnibees-check input{width:14px;height:14px;cursor:pointer;accent-color:#C62828}
+.omnibees-check.done{color:#1A5E1A;text-decoration:line-through}
+
+/* ── EVENTS SPECIFIC ── */
+.ev-card{border:0.5px solid var(--bd);border-radius:var(--r2);overflow:hidden;margin-bottom:8px;background:var(--bg)}
+.ev-header{padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;flex-wrap:wrap;transition:background .1s}
+.ev-header:hover{background:var(--bg2)}
+.ev-body{padding:14px;border-top:0.5px solid var(--bd)}
+.accion-box{border-radius:var(--r);padding:9px 12px;margin-bottom:10px}
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+.ev-field label{font-size:10px;color:var(--tx2);display:block;margin-bottom:3px}
+table.tf{width:100%;border-collapse:collapse;font-size:10px}
+table.tf th{background:var(--navy);color:#fff;padding:5px 8px;font-weight:500;text-align:right}
+table.tf th:first-child{text-align:left}
+table.tf td{padding:4px 8px;border-bottom:0.5px solid var(--bd);text-align:right}
+table.tf td:first-child{text-align:left}
+table.tf tr:nth-child(even){background:var(--bg2)}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filt-btn{padding:5px 12px;border-radius:var(--r);border:0.5px solid var(--bd);cursor:pointer;font-size:11px;background:transparent;color:var(--tx);font-family:var(--font)}
+.filt-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.nuevo-form{border:1.5px dashed var(--bd2);border-radius:var(--r2);padding:14px;margin-bottom:12px;display:none}
+.nuevo-form h3{font-size:12px;font-weight:500;margin-bottom:8px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px}
+.form-grid label{font-size:10px;color:var(--tx2);display:block;margin-bottom:3px}
+.form-btns{display:flex;gap:8px}
+
+/* ── ALERT ROWS ── */
+.alert-row td{padding:5px 14px;border-bottom:1px solid rgba(0,0,0,0.06)}
+
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}.controls{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div>
+      <div class="logo-name">LINCOLN</div>
+      <div class="logo-sub">HOTEL</div>
+      <div class="logo-line"></div>
+      <div class="logo-city">LAURELES</div>
+    </div>
+  </div>
+  <div class="hdr-title">
+    <div class="hdr-label">Revenue Management</div>
+    <div class="hdr-h1">Sistema Integrado de Tarifas</div>
+    <div class="hdr-desc">Forecast · Eventos · Protocolo de precios · Alertas Omnibees</div>
+  </div>
+  <div class="hdr-date">
+    <div class="hdr-date-lbl">HOY</div>
+    <div class="hdr-date-val" id="hdrDate"></div>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('forecast',this)">
+    📊 Forecast &amp; Precios
+  </button>
+  <button class="tab-btn" onclick="showTab('eventos',this)">
+    🎫 Eventos <span class="tab-badge" id="evBadge">0</span>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PESTAÑA 1: FORECAST -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="body">
+<div class="tab-panel active" id="tab-forecast">
+
+  <div class="paste-panel">
+    <h3>Pega aquí el bloque de ocupación que te dio Claude</h3>
+    <p>Sube la foto del informe Zeus a Claude, copia el bloque y pégalo aquí. Formato: <code>YYYY-MM-DD:ocupacion</code> una línea por día. El widget muestra todos los días del bloque sin límite.</p>
+    <textarea id="pasteInput" rows="4" placeholder="2026-05-27:24&#10;2026-05-28:31&#10;2026-05-29:22&#10;..."></textarea>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="aplicarPaste()">Aplicar datos</button>
+      <button class="btn-sec" onclick="limpiarTodo()">Limpiar</button>
+      <span class="msg-ok" id="pasteMsg"></span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div><label>Inicio:</label><input type="date" id="startDate"></div>
+    <div><label>Tipología:</label><select id="tipoSel"></select></div>
+    <div style="margin-left:auto">
+      <div class="tabs" style="display:flex;gap:2px;background:var(--bg2);border-radius:var(--r);padding:3px">
+        <button class="tab-btn active" style="padding:4px 14px;border-radius:6px;font-size:12px;border:none;background:var(--bg);color:var(--tx);box-shadow:0 0 0 0.5px var(--bd)" id="subTabOTAbtn" onclick="setSubTab('otas',this)">OTAs — Rack</button>
+        <button class="tab-btn" style="padding:4px 14px;border-radius:6px;font-size:12px;border:none;background:transparent;color:var(--tx2)" id="subTabDirbtn" onclick="setSubTab('directa',this)">Directa / Walk-in</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <b>Temporadas:</b> Feria 31 jul–9 ago · Vacaciones 20 jun–10 jul · Semana Santa abr 1–15 · Receso 5–11 oct · Dic completo · Resto = T.Baja · Finde diferenciado · <b style="color:#922B21">Filas rojas = precio de evento activo</b>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="scroll">
+    <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+  </div>
+  <p class="hint">Clic en fila para ver todas las tipologías · Filas con borde rojo = evento activo ese día → precio evento reemplaza rack de temporada</p>
+
+</div><!-- /tab-forecast -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PESTAÑA 2: EVENTOS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-eventos">
+
+  <div class="nuevo-form" id="nuevoForm">
+    <h3>Agregar nuevo evento</h3>
+    <div class="form-grid">
+      <div><label>Nombre</label><input type="text" id="nNombre" placeholder="Nombre del evento" style="width:100%"></div>
+      <div><label>Fecha inicio</label><input type="date" id="nFecha" style="width:100%"></div>
+      <div><label>Fecha fin (opcional)</label><input type="date" id="nFechaFin" style="width:100%"></div>
+      <div><label>Venue</label><input type="text" id="nVenue" placeholder="Atanasio, Plaza Mayor..." style="width:100%"></div>
+      <div><label>Impacto</label>
+        <select id="nImpacto" style="width:100%">
+          <option value="maximo">Máximo — Feria Flores</option>
+          <option value="alto" selected>Alto — Atanasio</option>
+          <option value="medio">Medio — Plaza Mayor</option>
+          <option value="bajo">Bajo</option>
+        </select></div>
+      <div><label>Fuente oficial</label><input type="text" id="nFuente" placeholder="ticketmaster.co..." style="width:100%"></div>
+    </div>
+    <div class="form-btns">
+      <button class="btn-primary" onclick="agregarEvento()">Agregar</button>
+      <button class="btn-sec" onclick="document.getElementById('nuevoForm').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="top-bar">
+    <div class="filters" id="filtros">
+      <button class="filt-btn active" onclick="setFiltro('todos',this)">Todos</button>
+      <button class="filt-btn" onclick="setFiltro('activos',this)">Próximos 60d</button>
+      <button class="filt-btn" onclick="setFiltro('alto',this)">Alto / Máximo</button>
+      <button class="filt-btn" onclick="setFiltro('medio',this)">Medio</button>
+    </div>
+    <button class="btn-primary" onclick="document.getElementById('nuevoForm').style.display='block'">+ Nuevo evento</button>
+  </div>
+
+  <div id="eventosContainer"></div>
+
+</div><!-- /tab-eventos -->
+</div><!-- /body -->
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// DATOS MAESTROS
+// ════════════════════════════════════════════════════════════════
+const TIPOS = ["Doble 1p","Doble 2p","Doble2c 1p","Doble2c 2p","2CG 2p","2CG 3p","2CG 4p","Suite Jr 1p","Suite Jr 2p"];
+
+const TF = {
+  "Doble 1p":   {bs:305000,bf:380000,as:430000,af:524600,  fe:750000, db:250000,da:380000},
+  "Doble 2p":   {bs:330000,bf:428000,as:480000,af:585600,  fe:820000, db:310000,da:450000},
+  "Doble2c 1p": {bs:340000,bf:415000,as:455000,af:555100,  fe:860000, db:310000,da:450000},
+  "Doble2c 2p": {bs:380000,bf:464000,as:510000,af:622200,  fe:920000, db:400000,da:550000},
+  "2CG 2p":     {bs:430000,bf:525000,as:570000,af:695400,  fe:980000, db:400000,da:550000},
+  "2CG 3p":     {bs:490000,bf:598000,as:645000,af:786900,  fe:1060000,db:490000,da:660000},
+  "2CG 4p":     {bs:540000,bf:671000,as:720000,af:878400,  fe:1140000,db:490000,da:660000},
+  "Suite Jr 1p":{bs:490000,bf:671000,as:750000,af:900000,  fe:1065000,db:520000,da:750000},
+  "Suite Jr 2p":{bs:510000,bf:732000,as:800000,af:951600,  fe:1210000,db:600000,da:850000},
+};
+
+const RACK_EVENTO = {
+  maximo:{"Doble 1p":750000,"Doble 2p":820000,"Doble2c 1p":860000,"Doble2c 2p":920000,"2CG 2p":980000,"2CG 3p":1060000,"2CG 4p":1140000,"Suite Jr 1p":1065000,"Suite Jr 2p":1210000},
+  alto:  {"Doble 1p":524600,"Doble 2p":585600,"Doble2c 1p":555100,"Doble2c 2p":622200,"2CG 2p":695400,"2CG 3p":786900,"2CG 4p":878400,"Suite Jr 1p":900000,"Suite Jr 2p":951600},
+  medio: {"Doble 1p":430000,"Doble 2p":480000,"Doble2c 1p":455000,"Doble2c 2p":510000,"2CG 2p":570000,"2CG 3p":645000,"2CG 4p":720000,"Suite Jr 1p":750000,"Suite Jr 2p":780000},
+  bajo:  {"Doble 1p":305000,"Doble 2p":330000,"Doble2c 1p":340000,"Doble2c 2p":380000,"2CG 2p":430000,"2CG 3p":490000,"2CG 4p":540000,"Suite Jr 1p":490000,"Suite Jr 2p":510000},
+};
+
+const TC = {
+  feria:     {label:'Feria',        bg:'#FADBD8',color:'#7D0000'},
+  'alta-fin':{label:'T.Alta Finde', bg:'#F9CBA9',color:'#6B2800'},
+  alta:      {label:'T.Alta Sem.',  bg:'#FDEBD0',color:'#7D3C00'},
+  'baja-fin':{label:'Baja finde',   bg:'#D5F5E3',color:'#1A5E1A'},
+  'baja-sem':{label:'Baja sem.',    bg:'#D6EAF8',color:'#154360'},
+};
+
+const IMP_CFG = {
+  maximo:{label:'Máximo — Feria',bg:'#FADBD8',color:'#7D0000',border:'#922B21'},
+  alto:  {label:'Alto — Atanasio',bg:'#FDEBD0',color:'#7D3C00',border:'#A04000'},
+  medio: {label:'Medio — Plaza',  bg:'#FEF9E7',color:'#7D6608',border:'#BA7517'},
+  bajo:  {label:'Bajo',           bg:'#f4f6f8', color:'#5F5E5A',border:'#B4B2A9'},
+};
+
+const SEM_CFG = {
+  pasado:    {label:'Pasado',    bg:'#f4f6f8',color:'#888'},
+  urgente:   {label:'Urgente',   bg:'#FADBD8',color:'#7D0000'},
+  critico:   {label:'Crítico',   bg:'#FDEBD0',color:'#7D3C00'},
+  activo:    {label:'Activo',    bg:'#FEF9E7',color:'#7D6608'},
+  planificar:{label:'Planificar',bg:'#D5F5E3',color:'#1A5E1A'},
+  anticipar: {label:'Anticipar', bg:'#D6EAF8',color:'#154360'},
+};
+
+const REC_CFG = {
+  critico:{bg:'#FEF0EE',color:'#C62828'},
+  alto:   {bg:'#FFF3E0',color:'#E65100'},
+  medio:  {bg:'#FFF8E1',color:'#F57F17'},
+  ok:     {bg:'#F1F8E9',color:'#33691E'},
+  bajo:   {bg:'#E3F2FD',color:'#1565C0'},
+};
+
+const ALERTA_CFG = {
+  CRITICA:{bg:'#FDECEA',color:'#C62828',icon:'🔴'},
+  ALTA:   {bg:'#FFF3E0',color:'#E65100',icon:'🟠'},
+  MEDIA:  {bg:'#FFF8E1',color:'#F57F17',icon:'🟡'},
+  INFO:   {bg:'#E8F5E9',color:'#2E7D32',icon:'🟢'},
+};
+
+// ════════════════════════════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════════════════════════════
+let ocups = {};
+let expandedDate = null;
+let startDateVal = '';
+let subTab = 'otas';
+let omnibeesChecked = {};  // {fecha: true/false} — marcadas como actualizadas en Omnibees
+
+let eventos = [
+  {id:'E005',nombre:'FERIA DE LAS FLORES',    fecha:'2026-07-31',fechaFin:'2026-08-09',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
+  {id:'E006',nombre:'Desfile Silleteros',      fecha:'2026-08-07',fechaFin:'2026-08-07',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
+  {id:'E013',nombre:'Morat',                   fecha:'2026-05-30',fechaFin:'2026-05-30',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'ticketmaster.co'},
+  {id:'E008',nombre:'Arcangel — Noche 1',      fecha:'2026-09-04',fechaFin:'2026-09-04',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'infobae.com'},
+  {id:'E008B',nombre:'Arcangel — Noche 2',     fecha:'2026-09-05',fechaFin:'2026-09-05',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'infobae.com'},
+  {id:'E002',nombre:'Carlos Vives',            fecha:'2026-10-17',fechaFin:'2026-10-17',venue:'Est. Polideportivo Envigado',impacto:'medio',ocup:null,fuente:'ticketlive.co'},
+  {id:'E003',nombre:'Colombiamoda 2026',       fecha:'2026-07-28',fechaFin:'2026-07-30',venue:'Plaza Mayor',impacto:'medio',ocup:null,fuente:'colombiamoda.com'},
+];
+
+let filtroActual = 'todos';
+let expandedEvId = null;
+
+// ════════════════════════════════════════════════════════════════
+// UTILIDADES
+// ════════════════════════════════════════════════════════════════
+function parseLD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(s,n){const d=parseLD(s);d.setDate(d.getDate()+n);return dateStr(d);}
+function r1k(n){return Math.round(n/1000)*1000;}
+function fmtCOP(n){return '$'+Math.round(n).toLocaleString('es-CO');}
+
+// ════════════════════════════════════════════════════════════════
+// LÓGICA DE TEMPORADAS
+// ════════════════════════════════════════════════════════════════
+function getTemp(s){
+  const d=parseLD(s),m=d.getMonth()+1,day=d.getDate(),dow=d.getDay();
+  const esFin=(dow===5||dow===6);
+  if((m===7&&day>=31)||(m===8&&day<=9)) return 'feria';
+  if((m===6&&day>=20)||(m===7&&day<=10)) return esFin?'alta-fin':'alta';
+  if(m===10&&day>=5&&day<=11)            return esFin?'alta-fin':'alta';
+  if(m===12)                             return esFin?'alta-fin':'alta';
+  if(m===4&&day<=15)                     return esFin?'alta-fin':'alta';
+  if(esFin) return 'baja-fin';
+  return 'baja-sem';
+}
+
+// ════════════════════════════════════════════════════════════════
+// INTEGRACIÓN: buscar evento activo para una fecha
+// ════════════════════════════════════════════════════════════════
+function getEventoActivo(fecha){
+  return eventos.find(ev=>{
+    if(!ev.fecha) return false;
+    const fin = ev.fechaFin || ev.fecha;
+    return fecha >= ev.fecha && fecha <= fin;
+  }) || null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// PRECIOS
+// ════════════════════════════════════════════════════════════════
+function getRack(tipo,temp){
+  const t=TF[tipo];
+  if(temp==='feria')    return t.fe;
+  if(temp==='alta-fin') return t.af;
+  if(temp==='alta')     return t.as;
+  if(temp==='baja-fin') return t.bf;
+  return t.bs;
+}
+
+function getRackConEvento(tipo,temp,evento){
+  if(!evento) return getRack(tipo,temp);
+  return (RACK_EVENTO[evento.impacto]||RACK_EVENTO.bajo)[tipo] || getRack(tipo,temp);
+}
+
+function getMult(ocup,esEvento){
+  if(ocup===null) return 1;
+  if(ocup>85) return 1.175;
+  if(ocup>75) return 1.10;
+  if(ocup>65) return 1.05;
+  // En eventos el precio base es el piso — nunca baja
+  return 1.00;
+}
+
+function getDirecta(tipo,temp,ocup,walkin){
+  const t=TF[tipo];
+  let base;
+  if(temp==='feria')                        base=t.af;
+  else if(temp==='alta'||temp==='alta-fin') base=t.da;
+  else                                       base=t.db;
+  if(walkin&&ocup!==null&&ocup>80) base+=30000;
+  return base;
+}
+
+function getDesc(temp,ocup,evento){
+  const o=ocup??50;
+  const isFeria=temp==='feria'||(evento&&evento.impacto==='maximo');
+  const esAlta=(temp==='alta'||temp==='alta-fin')||(evento&&(evento.impacto==='alto'));
+  const esBajaFin=temp==='baja-fin';
+  const geniusOk=!isFeria&&!(evento&&(evento.impacto==='maximo'||evento.impacto==='alto'));
+  const genius=!geniusOk?'Excluir/Apagado':'Activo −15%';
+  const escapadaOk=!isFeria&&!esAlta&&!esBajaFin&&!evento&&o<50;
+  const escapada=isFeria||esAlta||evento?'Apagada':esBajaFin?'Apagada (finde)':o<50?'Activa máx −10%':'No necesaria';
+  const nota=isFeria||( evento&&evento.impacto==='maximo')
+    ?'FERIA/MÁXIMO: excluir Genius en Extranet. Solo NR.'
+    :evento?(evento.impacto==='alto'?'Evento ALTO: Genius apagado. Solo NR. Sin Escapada.':'Evento MEDIO: Genius activo si ocup<65%. Sin Escapada.')
+    :esAlta&&o>75?'T.Alta alta ocup.: Genius activo. Escapada apagada.'
+    :o<40?'Ocup. baja: Genius activo. Escapada si T.Baja sem y ocup<50%.'
+    :'Genius activo. Nacional, Intl y Móvil siempre activos al −10% (no acumulables).';
+  return{geniusOk,genius,escapadaOk,escapada,nota};
+}
+
+function getRecomendacion(tipo,temp,ocup,evento){
+  if(ocup===null) return{cambio:false,accion:'Ingresar % ocupación',nivel:'info'};
+  const baseRack=getRackConEvento(tipo,temp,evento);
+  if(ocup>85){
+    return{cambio:true,nivel:'critico',precioSugerido:r1k(baseRack*1.175),
+      accion:(evento?'Evento +85%: ':'SUBIR ')+'+15%–20% en Omnibees. Solo NR. Mínimo 2 noches.'};
+  }
+  if(ocup>75){
+    return{cambio:true,nivel:'alto',precioSugerido:r1k(baseRack*1.10),
+      accion:(evento?'Evento +75%: ':'SUBIR ')+'+10% en Omnibees. Solo Genius activo.'};
+  }
+  if(ocup>65&&!evento){
+    return{cambio:true,nivel:'medio',precioSugerido:r1k(baseRack*1.05),
+      accion:'SUBIR +5% entre semana en Omnibees. Apagar Escapada.'};
+  }
+  if(ocup>=40) return{cambio:false,nivel:'ok',accion:evento?'Precio evento vigente. Monitorear.':'Rack base vigente. Sin cambios.'};
+  return{cambio:false,nivel:'bajo',accion:evento?'Precio evento sin cambio. Activar descuentos según impacto.':'Rack sin cambio. Activar Genius + Escapada (T.Baja sem).'};
+}
+
+function getAlerta(temp,prevTemp){
+  if(!prevTemp||prevTemp===temp) return null;
+  const A={
+    'baja-sem→feria':  {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria en Omnibees. Solo NR.'},
+    'baja-fin→feria':  {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius en Extranet, apagar Escapada, cargar tarifa Feria. Solo NR.'},
+    'alta→feria':      {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius, cargar tarifa Feria en Omnibees.'},
+    'alta-fin→feria':  {tipo:'CRITICA',msg:'FERIA inicio — excluir Genius, cargar tarifa Feria en Omnibees.'},
+    'feria→alta':      {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta sem en Omnibees.'},
+    'feria→alta-fin':  {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius, cargar tarifas T.Alta finde en Omnibees.'},
+    'feria→baja-sem':  {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius + Escapada, cargar tarifas T.Baja en Omnibees.'},
+    'feria→baja-fin':  {tipo:'ALTA',   msg:'Fin Feria — reactivar Genius, cargar tarifas T.Baja finde en Omnibees.'},
+    'baja-sem→alta':   {tipo:'MEDIA',  msg:'Inicio T.Alta — apagar Escapada, cargar tarifas T.Alta sem en Omnibees.'},
+    'baja-fin→alta':   {tipo:'MEDIA',  msg:'Inicio T.Alta — apagar Escapada, cargar tarifas T.Alta sem en Omnibees.'},
+    'baja-sem→alta-fin':{tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees.'},
+    'baja-fin→alta-fin':{tipo:'MEDIA', msg:'Inicio T.Alta finde — apagar Escapada, cargar tarifas T.Alta finde en Omnibees.'},
+    'alta→baja-sem':   {tipo:'MEDIA',  msg:'Fin T.Alta — reactivar Escapada (máx −10%), cargar tarifas T.Baja sem en Omnibees.'},
+    'alta-fin→baja-sem':{tipo:'MEDIA', msg:'Fin T.Alta — reactivar Escapada (máx −10%), cargar tarifas T.Baja sem en Omnibees.'},
+    'alta→baja-fin':   {tipo:'INFO',   msg:'Transición T.Alta → T.Baja finde — Escapada apagada, tarifas finde en Omnibees.'},
+    'baja-fin→baja-sem':{tipo:'INFO',  msg:'Lunes: semana → Genius+Escapada activos. Revisar rack T.Baja sem en Omnibees.'},
+    'baja-sem→baja-fin':{tipo:'INFO',  msg:'Viernes: finde → apagar Escapada. Cargar rack T.Baja finde en Omnibees.'},
+  };
+  return A[prevTemp+'→'+temp]||null;
+}
+
+function getAccionEvento(dias,imp,ocup){
+  const o=ocup??0;
+  if(dias<0) return 'Evento pasado.';
+  if(dias===0) return 'Día del evento: NO bajar precio bajo ninguna circunstancia.';
+  if(dias<=6){
+    if(o>85) return 'Precio máximo del mercado. Solo NR absoluto.';
+    if(o<60) return 'Last-minute flexible. Bajar máx 15%. Nunca volver al precio base.';
+    return 'Mantener precio evento. Solo NR.';
+  }
+  if(dias<=14){
+    if(o>70) return 'Subir 10%–20%. Demanda confirmada.';
+    if(o<40) return 'Revisión final. Bajar máx 20% del precio evento.';
+    return 'Ajuste dinámico activo. Monitorear diariamente.';
+  }
+  if(dias<=29){
+    if(o>40) return 'Subir 5%–10%. Buen pickup.';
+    if(o<25) return 'Precio posiblemente alto. Bajar máx 15%.';
+    return 'Ajuste dinámico. Monitorear semanal.';
+  }
+  if(dias<=59){
+    if((imp==='maximo'||imp==='alto')&&o<15) return 'Precio posiblemente alto. Bajar máx 10%.';
+    return 'Monitorear pickup semanal. Mantener precio evento.';
+  }
+  return 'Cargar precio evento preventivo. Solo NR desde el primer día.';
+}
+
+// ════════════════════════════════════════════════════════════════
+// FORECAST — RENDER
+// ════════════════════════════════════════════════════════════════
+function getDays(){
+  const keys=Object.keys(ocups).sort();
+  if(keys.length>0) return keys;
+  const a=[];for(let i=0;i<30;i++)a.push(addDays(startDateVal,i));return a;
+}
+
+function aplicarPaste(){
+  const txt=document.getElementById('pasteInput').value.trim();
+  if(!txt) return;
+  let count=0,firstDate=null;
+  txt.split('\n').forEach(line=>{
+    const parts=line.trim().split(':');
+    if(parts.length>=2){
+      const fecha=parts[0].trim(),val=parseInt(parts[1].trim(),10);
+      if(fecha.match(/^\d{4}-\d{2}-\d{2}$/)&&!isNaN(val)){
+        ocups[fecha]=Math.min(100,Math.max(0,val));
+        if(!firstDate) firstDate=fecha;
+        count++;
+      }
+    }
+  });
+  if(firstDate){startDateVal=firstDate;document.getElementById('startDate').value=firstDate;}
+  const msg=document.getElementById('pasteMsg');
+  msg.textContent=count+' días cargados';
+  setTimeout(()=>msg.textContent='',3000);
+  expandedDate=null;
+  renderForecast();
+}
+
+function limpiarTodo(){
+  ocups={};
+  document.getElementById('pasteInput').value='';
+  expandedDate=null;
+  renderForecast();
+}
+
+function setSubTab(t,btn){
+  subTab=t;
+  document.getElementById('subTabOTAbtn').style.background=t==='otas'?'var(--bg)':'transparent';
+  document.getElementById('subTabOTAbtn').style.color=t==='otas'?'var(--tx)':'var(--tx2)';
+  document.getElementById('subTabDirbtn').style.background=t==='directa'?'var(--bg)':'transparent';
+  document.getElementById('subTabDirbtn').style.color=t==='directa'?'var(--tx)':'var(--tx2)';
+  renderForecast();
+}
+
+function toggleCheck(fecha){
+  omnibeesChecked[fecha]=!omnibeesChecked[fecha];
+  renderForecast();
+}
+
+function renderForecast(){
+  const days=getDays(), sel=document.getElementById('tipoSel').value||'Doble 2p';
+  // KPIs
+  const ol=days.map(d=>ocups[d]??null).filter(o=>o!==null);
+  const prom=ol.length?Math.round(ol.reduce((a,b)=>a+b,0)/ol.length):0;
+  document.getElementById('kpis').innerHTML=
+    '<div class="kpi"><div class="kpi-lbl">Ocup. promedio</div><div class="kpi-val" style="color:'+(prom>65?'#922B21':prom>35?'#A04000':'#1A5E1A')+'">'+prom+'%</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Período</div><div class="kpi-val" style="font-size:12px">'+(days.length>0?days[0].slice(5)+' → '+days[days.length-1].slice(5):'—')+'</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Días cargados</div><div class="kpi-val">'+days.length+' días</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Tipología</div><div class="kpi-val" style="font-size:12px;color:var(--navy)">'+sel+'</div></div>';
+
+  // Headers
+  const isOta=subTab==='otas';
+  document.getElementById('thead').innerHTML='<tr>'+
+    '<th style="text-align:left;width:9%">Fecha</th>'+
+    '<th style="width:10%">Temporada</th>'+
+    '<th style="width:11%">Ocup%</th>'+
+    (isOta
+      ?'<th style="width:10%">Rack OTA</th><th style="width:10%">Neto −15%</th><th style="text-align:left;min-width:200px">Descuentos y acción Omnibees</th>'
+      :'<th style="width:10%">Directa</th><th style="width:10%">Walk-in</th><th style="text-align:left;min-width:180px">Instrucción y acción</th>')+
+    '</tr>';
+
+  let html='',prevTemp=null;
+
+  days.forEach(d=>{
+    const ocup=ocups[d]??null, temp=getTemp(d);
+    const evento=getEventoActivo(d);
+    const tc=TC[temp]||TC['baja-sem'];
+    const mult=getMult(ocup,!!evento);
+    const rack=r1k(getRackConEvento(sel,temp,evento)*mult);
+    const neto=r1k(rack*0.85);
+    const directa=getDirecta(sel,temp,ocup,false);
+    const walkin=getDirecta(sel,temp,ocup,true);
+    const desc=getDesc(temp,ocup,evento);
+    const rec=getRecomendacion(sel,temp,ocup,evento);
+    const pd=parseLD(d),dow=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][pd.getDay()];
+    const isFeria=temp==='feria',isAlta=(temp==='alta'||temp==='alta-fin');
+
+    // Color de fila — evento en rojo, feria en rosa, alta en naranja pálido
+    const rowBg=evento?(evento.impacto==='maximo'?'#FEF0EE':'#FFF5F0'):
+      isFeria?'#FEF0EE':isAlta?'#FEF7EE':'#fff';
+    const leftBorder=evento?`border-left:3px solid ${IMP_CFG[evento.impacto]?.border||'#922B21'};`:'';
+
+    // Alerta de cambio de temporada
+    const alerta=getAlerta(temp,prevTemp);
+    if(alerta){
+      const ac=ALERTA_CFG[alerta.tipo]||ALERTA_CFG.INFO;
+      html+='<tr class="alert-row" style="background:'+ac.bg+'">'+
+        '<td colspan="6" style="text-align:left">'+
+        '<span style="font-size:10px;font-weight:700;color:'+ac.color+'">'+ac.icon+' ACCIÓN OMNIBEES — '+alerta.tipo+':</span> '+
+        '<span style="font-size:10px;color:'+ac.color+'">'+alerta.msg+'</span></td></tr>';
+    }
+    prevTemp=temp;
+
+    // Badge de evento sobre la temporada
+    const tempCell=evento
+      ?'<div>'+
+        '<span class="badge" style="background:'+IMP_CFG[evento.impacto].bg+';color:'+IMP_CFG[evento.impacto].color+'">'+evento.nombre+'</span>'+
+        '</div><div style="margin-top:2px">'+
+        '<span class="badge" style="background:'+tc.bg+';color:'+tc.color+';font-size:9px">'+tc.label+'</span>'+
+        '</div>'
+      :'<span class="badge" style="background:'+tc.bg+';color:'+tc.color+'">'+tc.label+'</span>';
+
+    // Input ocupación
+    const pct=ocup!==null?Math.min(ocup,100):0;
+    const barColor=ocup>75?'#922B21':ocup>50?'#A04000':'#1A5E1A';
+    const ocupCell='<div style="display:flex;align-items:center;gap:4px">'+
+      '<input type="number" min="0" max="100" step="1" value="'+(ocup??'')+'" placeholder="—" '+
+      'onchange="setOcup(\''+d+'\',this.value)" onclick="event.stopPropagation()" style="width:46px">'+
+      (ocup!==null?'<div style="width:'+Math.round(pct*0.44)+'px;height:5px;border-radius:3px;flex-shrink:0;background:'+barColor+'"></div>':'')+
+      '</div>';
+
+    // Celda de precio — si hay evento, mostrar precio evento + checkbox Omnibees
+    const precioColor=evento?(IMP_CFG[evento.impacto]?.color||'#7D0000'):(isFeria?'#7D0000':isAlta?'#7D3C00':'var(--tx)');
+    const isChecked=!!omnibeesChecked[d];
+    const checkCell=evento?
+      '<div style="margin-top:3px">'+
+      '<label class="omnibees-check'+(isChecked?' done':'')+'" onclick="event.stopPropagation();toggleCheck(\''+d+'\')" title="Marcar como actualizado en Omnibees">'+
+      '<input type="checkbox" '+(isChecked?'checked':'')+' onchange="toggleCheck(\''+d+'\')" onclick="event.stopPropagation()">'+
+      (isChecked?'✓ Actualizado en Omnibees':'Marcar actualizado en Omnibees')+
+      '</label></div>':'';
+
+    // Celda unificada descuentos + recomendación
+    let unifiedCell;
+    if(isOta){
+      const ac2=desc.geniusOk?(desc.escapadaOk?'Genius + Escapada':'Genius activo'):'Genius apagado';
+      const descSpan='<span style="font-size:10px;color:'+(desc.geniusOk?'#1A5E1A':'#922B21')+'">'+ac2+'</span>';
+      let recDiv='';
+      if(rec.cambio){
+        const rc=REC_CFG[rec.nivel]||REC_CFG.ok;
+        recDiv='<div style="margin-top:4px;padding:4px 7px;border-radius:4px;background:'+rc.bg+';border-left:2px solid '+rc.color+'">'
+          +'<span style="font-size:10px;font-weight:700;color:'+rc.color+'">⚡ Subir a '+fmtCOP(rec.precioSugerido)+'</span>'
+          +'<span style="font-size:9px;color:'+rc.color+';margin-left:5px">(actual '+fmtCOP(rack)+')</span>'
+          +'<div style="font-size:9px;color:'+rc.color+';margin-top:1px">'+rec.accion+'</div>'
+          +'</div>';
+      }
+      unifiedCell='<td style="text-align:left;padding:5px 7px;vertical-align:top">'+descSpan+recDiv+'</td>';
+    } else {
+      const inst=isFeria?'Feria: OTA T.Alta finde. Sin descuento.':
+        isAlta?'T.Alta: NR preferido. No bajar.':
+        ocup!==null&&ocup<35?'Ocup. baja: precio fijo. Ofrecer desayuno.':
+        'Tarifa estándar. No negociar por debajo.';
+      let walkDiv='';
+      if(ocup!==null&&ocup>80){
+        walkDiv='<div style="margin-top:4px;padding:4px 7px;border-radius:4px;background:#FEF0EE;border-left:2px solid #C62828">'
+          +'<span style="font-size:10px;font-weight:700;color:#C62828">⚡ Walk-in: cobrar '+fmtCOP(walkin)+'</span>'
+          +'<div style="font-size:9px;color:#C62828">+$30.000 sobre base por ocup &gt;80%</div>'
+          +'</div>';
+      }
+      unifiedCell='<td style="text-align:left;padding:5px 7px;vertical-align:top"><span style="font-size:10px;color:#555">'+inst+'</span>'+walkDiv+'</td>';
+    }
+
+    let midCells;
+    if(isOta){
+      midCells='<td style="font-weight:600;color:'+precioColor+'">'+fmtCOP(rack)+checkCell+'</td>'+
+               '<td style="color:var(--tx2)">'+fmtCOP(neto)+'</td>'+
+               unifiedCell;
+    } else {
+      midCells='<td style="font-weight:600;color:var(--navy)">'+fmtCOP(directa)+checkCell+'</td>'+
+               '<td style="color:'+(ocup!==null&&ocup>80?'#922B21':'var(--tx2)')+'">'+fmtCOP(walkin)+
+               (ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':'')+
+               '</td>'+unifiedCell;
+    }
+
+    html+='<tr style="background:'+rowBg+';'+leftBorder+'cursor:pointer" onclick="toggleExpFc(\''+d+'\')">'
+      +'<td><span style="color:var(--tx2);font-size:10px;margin-right:4px">'+dow+'</span>'+d.slice(5)+'</td>'
+      +'<td>'+tempCell+'</td>'
+      +'<td>'+ocupCell+'</td>'
+      +midCells
+      +'</tr>';
+
+    // Fila expandida
+    if(expandedDate===d){
+      const tiposRows=TIPOS.map((t,i)=>{
+        const r=r1k(getRackConEvento(t,temp,evento)*mult);
+        const dir=getDirecta(t,temp,ocup,false);
+        const wlk=getDirecta(t,temp,ocup,true);
+        const recT=getRecomendacion(t,temp,ocup,evento);
+        const isSuite=t.includes('Suite');
+        let recTcell='<td style="text-align:left;padding:3px 6px;font-size:9px;color:#aaa">Sin cambio</td>';
+        if(recT.cambio){
+          const rc=REC_CFG[recT.nivel]||REC_CFG.ok;
+          recTcell='<td style="text-align:left;padding:3px 6px"><b style="font-size:10px;color:'+rc.color+'">'+fmtCOP(recT.precioSugerido)+'</b></td>';
+        }
+        return '<tr style="background:'+(i%2===0?'#f4f6f8':'#fff')+'">'
+          +'<td style="font-weight:'+(isSuite?500:400)+';color:'+(isSuite?'var(--navy)':'var(--tx)')+';padding:4px 6px">'+t+'</td>'
+          +'<td style="text-align:right;font-weight:500;padding:4px 6px;color:'+precioColor+'">'+fmtCOP(r)+'</td>'
+          +'<td style="text-align:right;color:var(--tx2);padding:4px 6px">'+fmtCOP(r1k(r*0.85))+'</td>'
+          +'<td style="text-align:right;color:var(--navy);padding:4px 6px">'+fmtCOP(dir)+'</td>'
+          +'<td style="text-align:right;color:'+(ocup!==null&&ocup>80?'#922B21':'var(--tx2)')+';padding:4px 6px">'+fmtCOP(wlk)+'</td>'
+          +recTcell+'</tr>';
+      }).join('');
+
+      const descPills=[
+        [desc.geniusOk,'Genius',desc.genius],
+        [desc.escapadaOk,'Escapada',desc.escapada],
+        [true,'Nacional −10%',''],
+        [true,'Intl. −10%',''],
+        [true,'Móvil −10%',''],
+      ].map(([ok,lbl])=>'<span class="disc-pill" style="background:'+(ok?'#D5F5E3':'#f1f1f1')+';color:'+(ok?'#1A5E1A':'#888')+'">'+(ok?'✓':'✗')+' '+lbl+'</span>').join('');
+
+      const eventoInfo=evento?'<div style="margin-bottom:8px;padding:8px 10px;background:'+IMP_CFG[evento.impacto].bg+';border-radius:var(--r);border-left:3px solid '+IMP_CFG[evento.impacto].border+'">'+
+        '<span style="font-size:11px;font-weight:500;color:'+IMP_CFG[evento.impacto].color+'">🎫 '+evento.nombre+'</span>'+
+        '<span style="font-size:10px;color:var(--tx2);margin-left:8px">Impacto '+evento.impacto+' — precio evento activo este día</span>'+
+        '</div>':'';
+
+      html+='<tr style="background:'+rowBg+'"><td colspan="6" style="padding:8px 12px">'
+        +'<div class="exp-inner">'+eventoInfo
+        +'<div style="font-size:11px;font-weight:500;margin-bottom:8px">Todas las tipologías — '+d+'</div>'
+        +'<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse;min-width:440px">'
+        +'<thead><tr>'
+        +'<th style="text-align:left;padding:5px 6px;width:120px">Tipo</th>'
+        +'<th style="text-align:right;padding:5px 6px">Rack OTA</th>'
+        +'<th style="text-align:right;padding:5px 6px">Neto −15%</th>'
+        +'<th style="text-align:right;padding:5px 6px">Directa</th>'
+        +'<th style="text-align:right;padding:5px 6px">Walk-in</th>'
+        +'<th style="text-align:left;padding:5px 6px">⚡ Sugerido</th>'
+        +'</tr></thead><tbody>'+tiposRows+'</tbody></table></div>'
+        +'<div style="margin-top:8px;padding:8px 10px;background:#f4f6f8;border-radius:var(--r)">'
+        +'<div style="font-size:10px;font-weight:500;margin-bottom:4px">Descuentos</div>'
+        +'<div>'+descPills+'</div>'
+        +'<div style="font-size:10px;color:var(--tx2);margin-top:4px;font-style:italic">'+desc.nota+'</div>'
+        +'</div></div></td></tr>';
+    }
+  });
+
+  document.getElementById('tbody').innerHTML=html;
+}
+
+function setOcup(date,val){
+  if(val===''||val===null){delete ocups[date];}
+  else{ocups[date]=Math.min(100,Math.max(0,Number(val)));}
+  renderForecast();
+}
+
+function toggleExpFc(d){expandedDate=expandedDate===d?null:d;renderForecast();}
+
+// ════════════════════════════════════════════════════════════════
+// EVENTOS — RENDER
+// ════════════════════════════════════════════════════════════════
+function getDiasEvento(s){
+  if(!s) return 9999;
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  return Math.round((parseLD(s)-hoy)/86400000);
+}
+function getSem(d){
+  if(d<0)return'pasado';if(d<=6)return'urgente';if(d<=14)return'critico';
+  if(d<=29)return'activo';if(d<=59)return'planificar';return'anticipar';
+}
+function getProxRev(d){
+  if(d<0)return'—';
+  const add=d<=6?1:d<=14?2:d<=29?4:7;
+  return new Date(new Date().getTime()+add*86400000).toLocaleDateString('es-CO',{day:'2-digit',month:'short'});
+}
+
+function setFiltro(f,btn){
+  filtroActual=f;
+  document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEventos();
+}
+
+function updateEvento(id,campo,val){
+  eventos=eventos.map(e=>e.id===id?{...e,[campo]:val}:e);
+  renderEventos();
+  renderForecast(); // actualizar forecast si cambia fecha o impacto
+}
+
+function eliminarEvento(id){
+  if(confirm('¿Eliminar este evento del sistema?')){
+    eventos=eventos.filter(e=>e.id!==id);
+    if(expandedEvId===id) expandedEvId=null;
+    updateEvBadge();
+    renderEventos();
+    renderForecast();
+  }
+}
+
+function toggleExpEv(id){expandedEvId=expandedEvId===id?null:id;renderEventos();}
+
+function agregarEvento(){
+  const nombre=document.getElementById('nNombre').value.trim();
+  const fecha=document.getElementById('nFecha').value;
+  if(!nombre||!fecha){alert('Nombre y fecha son obligatorios');return;}
+  const newId='E'+String(eventos.length+1+Date.now()%1000).slice(-3);
+  eventos.push({
+    id:newId, nombre, fecha,
+    fechaFin:document.getElementById('nFechaFin').value||fecha,
+    venue:document.getElementById('nVenue').value,
+    impacto:document.getElementById('nImpacto').value,
+    ocup:null,
+    fuente:document.getElementById('nFuente').value,
+  });
+  document.getElementById('nuevoForm').style.display='none';
+  ['nNombre','nVenue','nFuente'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('nFecha').value='';
+  document.getElementById('nFechaFin').value='';
+  updateEvBadge();
+  renderEventos();
+  renderForecast(); // reflejar el nuevo evento en el forecast
+}
+
+function updateEvBadge(){
+  document.getElementById('evBadge').textContent=eventos.length;
+}
+
+function renderEventos(){
+  const filtrados=eventos
+    .filter(e=>{
+      const d=getDiasEvento(e.fecha);
+      if(filtroActual==='activos') return d>=0&&d<=60;
+      if(filtroActual==='alto')    return e.impacto==='alto'||e.impacto==='maximo';
+      if(filtroActual==='medio')   return e.impacto==='medio';
+      return true;
+    })
+    .sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+
+  const cont=document.getElementById('eventosContainer');
+  if(filtrados.length===0){
+    cont.innerHTML='<div style="text-align:center;padding:32px;color:var(--tx2)">No hay eventos en este filtro.</div>';
+    return;
+  }
+
+  cont.innerHTML='';
+  filtrados.forEach(ev=>{
+    const dias=getDiasEvento(ev.fecha),sem=getSem(dias);
+    const accion=getAccionEvento(dias,ev.impacto,ev.ocup);
+    const proxRev=getProxRev(dias);
+    const ic=IMP_CFG[ev.impacto]||IMP_CFG.bajo;
+    const sc=SEM_CFG[sem];
+    const isExp=expandedEvId===ev.id;
+    const d=parseLD(ev.fecha);
+    const fechaLabel=d?d.toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'Sin fecha';
+    const fechaFinLabel=ev.fechaFin&&ev.fechaFin!==ev.fecha?' → '+parseLD(ev.fechaFin).toLocaleDateString('es-CO',{day:'2-digit',month:'short'}):'';
+
+    // Tarifas del evento
+    const racks=RACK_EVENTO[ev.impacto]||RACK_EVENTO.bajo;
+    const mult2=getMult(ev.ocup,true);
+    const tfRows=TIPOS.map((tipo,i)=>{
+      const r=r1k((racks[tipo]||TF[tipo].bs)*mult2);
+      const isSuite=tipo.includes('Suite');
+      return '<tr style="background:'+(i%2===0?'#f4f6f8':'#fff')+'">'
+        +'<td style="font-weight:'+(isSuite?500:400)+';color:'+(isSuite?'var(--navy)':'var(--tx)')+'">'+tipo+'</td>'
+        +'<td style="font-weight:600;color:'+ic.color+'">'+fmtCOP(r)+'</td>'
+        +'<td style="color:var(--tx2)">'+fmtCOP(r1k(r*0.85))+'</td>'
+        +'<td style="color:var(--navy)">'+fmtCOP(r1k(r*0.92))+'</td>'
+        +'</tr>';
+    }).join('');
+
+    const card=document.createElement('div');
+    card.className='ev-card';
+    card.style.borderLeft='3px solid '+ic.border;
+
+    let expBody='';
+    if(isExp){
+      expBody=`<div class="ev-body">
+        <div class="accion-box" style="background:${ic.bg}">
+          <div style="font-size:11px;font-weight:500;color:${ic.color};margin-bottom:3px">
+            Acción recomendada — ${dias<0?'Pasado':dias===0?'Hoy':dias+'d restantes'}
+          </div>
+          <div style="font-size:12px">${accion}</div>
+        </div>
+        <div class="ev-grid">
+          <div><label>Impacto (cambia precios)</label>
+            <select style="width:100%" onchange="updateEvento('${ev.id}','impacto',this.value)" onclick="event.stopPropagation()">
+              <option value="maximo"${ev.impacto==='maximo'?' selected':''}>Máximo — Feria</option>
+              <option value="alto"${ev.impacto==='alto'?' selected':''}>Alto — Atanasio</option>
+              <option value="medio"${ev.impacto==='medio'?' selected':''}>Medio — Plaza Mayor</option>
+              <option value="bajo"${ev.impacto==='bajo'?' selected':''}>Bajo</option>
+            </select></div>
+          <div><label>% Ocupación actual</label>
+            <input type="number" min="0" max="100" value="${ev.ocup??''}" placeholder="0–100" style="width:100%"
+              onchange="updateEvento('${ev.id}','ocup',this.value===''?null:Number(this.value))" onclick="event.stopPropagation()"></div>
+          <div><label>Fecha inicio</label>
+            <input type="date" value="${ev.fecha||''}" style="width:100%"
+              onchange="updateEvento('${ev.id}','fecha',this.value)" onclick="event.stopPropagation()"></div>
+          <div><label>Fecha fin</label>
+            <input type="date" value="${ev.fechaFin||ev.fecha||''}" style="width:100%"
+              onchange="updateEvento('${ev.id}','fechaFin',this.value)" onclick="event.stopPropagation()"></div>
+          <div><label>Fuente oficial</label>
+            <input type="text" value="${ev.fuente||''}" placeholder="ticketmaster.co..." style="width:100%"
+              onchange="updateEvento('${ev.id}','fuente',this.value)" onclick="event.stopPropagation()"></div>
+        </div>
+        <div style="font-size:11px;font-weight:500;margin-bottom:6px">Tarifas recomendadas</div>
+        <div style="overflow-x:auto">
+          <table class="tf" style="min-width:340px">
+            <thead><tr><th style="text-align:left">Tipología</th><th>Rack OTA</th><th>Neto −15%</th><th>Directa</th></tr></thead>
+            <tbody>${tfRows}</tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:10px;color:var(--tx2)">
+          Próx. revisión: <b>${proxRev}</b> · Fuente: <a href="https://${ev.fuente||'#'}" target="_blank" style="color:var(--navy)">${ev.fuente||'verificar'}</a>
+        </div>
+      </div>`;
+    }
+
+    card.innerHTML=`
+      <div class="ev-header" onclick="toggleExpEv('${ev.id}')">
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:13px;font-weight:500;margin-bottom:2px">${ev.nombre}</div>
+          <div style="font-size:11px;color:var(--tx2)">${fechaLabel}${fechaFinLabel} · ${ev.venue||'—'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="badge" style="background:${ic.bg};color:${ic.color}">${ic.label}</span>
+          <span class="badge" style="background:${sc.bg};color:${sc.color}">${sc.label}</span>
+          ${dias>=0?'<span style="font-size:11px;color:var(--tx2)">'+(dias===0?'Hoy':dias+'d')+'</span>':''}
+          <span style="font-size:10px;color:var(--tx2)">Rev. ${proxRev}</span>
+          <button class="btn-danger" onclick="event.stopPropagation();eliminarEvento('${ev.id}')">Eliminar</button>
+        </div>
+      </div>
+      ${expBody}`;
+    cont.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// TABS PRINCIPALES
+// ════════════════════════════════════════════════════════════════
+function showTab(tab,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+const today=new Date();
+const todayStr=dateStr(today);
+startDateVal=todayStr;
+document.getElementById('startDate').value=todayStr;
+document.getElementById('startDate').onchange=function(){startDateVal=this.value;ocups={};expandedDate=null;renderForecast();};
+document.getElementById('hdrDate').textContent=today.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+
+// Poblar tipologías ANTES de renderForecast
+const tipoSel=document.getElementById('tipoSel');
+TIPOS.forEach(t=>{const o=document.createElement('option');o.value=o.textContent=t;tipoSel.appendChild(o);});
+tipoSel.value='Doble 2p';
+tipoSel.onchange=renderForecast;
+
+updateEvBadge();
+renderForecast();
+renderEventos();
+</script>
+</body>
+</html>
