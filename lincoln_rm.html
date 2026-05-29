@@ -54,9 +54,9 @@ textarea{resize:vertical;font-family:var(--mono);line-height:1.5}
 .info-bar{background:linear-gradient(90deg,#EAF3DE,#F0F7E8);border-radius:var(--r);border-left:3px solid #2E7D32;padding:6px 12px;font-size:10px;color:#3B6D11;margin-bottom:10px}
 .scroll{max-height:520px;overflow-y:auto;border:0.5px solid var(--bd);border-radius:0 0 var(--r2) var(--r2)}
 table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
-thead th{background:var(--navy);color:#fff;padding:8px 7px;text-align:center;font-weight:500;font-size:10px;position:sticky;top:0;z-index:2}
+thead th{background:var(--navy);color:#fff;padding:8px 7px;text-align:center;font-weight:500;font-size:10px;position:sticky;top:0;z-index:2;vertical-align:middle}
 thead th:first-child{text-align:left}
-td{padding:6px 7px;border-bottom:0.5px solid var(--bd);text-align:center;vertical-align:top}
+td{padding:6px 7px;border-bottom:0.5px solid var(--bd);text-align:center;vertical-align:middle}
 td:first-child{text-align:left;font-weight:500}
 tbody tr:hover td{background:var(--bg2)!important}
 .hint{font-size:10px;color:var(--tx2);margin-top:8px;text-align:center}
@@ -105,7 +105,33 @@ table.tf tr:nth-child(even){background:var(--bg2)}
 .alert-row td{padding:5px 14px;border-bottom:1px solid rgba(0,0,0,0.06)}
 
 @media(max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}.controls{flex-direction:column;align-items:flex-start}}
+
+/* ── REPORTERÍA ── */
+.rpt-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.rpt-kpi{background:var(--bg2);border-radius:var(--r);padding:10px 14px;border-left:3px solid var(--gold)}
+.rpt-kpi-lbl{font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.rpt-kpi-val{font-size:18px;font-weight:500}
+.rpt-kpi-sub{font-size:10px;color:var(--tx2);margin-top:2px}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.chart-box{background:var(--bg2);border-radius:var(--r2);padding:14px}
+.chart-box h4{font-size:11px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.analysis-box{background:linear-gradient(135deg,#0d1f3c,#1A2B4A);border-radius:var(--r2);padding:16px;margin-bottom:14px;color:#fff}
+.analysis-box h4{font-size:12px;font-weight:500;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.analysis-item{font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:6px;padding-left:12px;border-left:2px solid var(--gold)}
+.hist-table{width:100%;border-collapse:collapse;font-size:11px}
+.hist-table th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;font-weight:500;font-size:10px}
+.hist-table td{padding:6px 10px;border-bottom:0.5px solid var(--bd)}
+.hist-table tr:hover td{background:var(--bg2)}
+.save-bar{background:var(--bg2);border-radius:var(--r2);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.save-bar p{font-size:12px;color:var(--tx2);flex:1}
+.btn-save{background:var(--gold);color:var(--navy);border:none;padding:8px 20px;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.btn-save:hover{opacity:.9}
+.btn-clear-hist{background:transparent;color:#C62828;border:0.5px solid #C62828;padding:6px 14px;border-radius:var(--r);font-size:11px;cursor:pointer;font-family:var(--font)}
+.trend-up{color:#1A5E1A;font-weight:600}
+.trend-down{color:#C62828;font-weight:600}
+.trend-flat{color:var(--tx2)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -138,6 +164,9 @@ table.tf tr:nth-child(even){background:var(--bg2)}
   </button>
   <button class="tab-btn" onclick="showTab('eventos',this)">
     🎫 Eventos <span class="tab-badge" id="evBadge">0</span>
+  </button>
+  <button class="tab-btn" onclick="showTab('reporte',this)">
+    📈 Reportería <span class="tab-badge" id="rptBadge" style="background:#1A5E1A">0</span>
   </button>
 </div>
 
@@ -222,6 +251,71 @@ table.tf tr:nth-child(even){background:var(--bg2)}
   <div id="eventosContainer"></div>
 
 </div><!-- /tab-eventos -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PESTAÑA 3: REPORTERÍA -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-reporte">
+
+  <div class="save-bar">
+    <div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:2px">Guardar snapshot del día</div>
+      <p>Guarda el estado actual del forecast (ocupación promedio, rack, período) como registro histórico.</p>
+    </div>
+    <button class="btn-save" onclick="guardarSnapshot()">💾 Guardar hoy</button>
+    <button class="btn-clear-hist" onclick="limpiarHistorial()">Limpiar historial</button>
+    <span id="saveMsg" style="font-size:11px;color:#1A5E1A"></span>
+  </div>
+
+  <!-- KPIs comparativos -->
+  <div class="rpt-kpis" id="rptKpis">
+    <div class="rpt-kpi"><div class="rpt-kpi-lbl">Snapshots guardados</div><div class="rpt-kpi-val" id="rKpiTotal">0</div><div class="rpt-kpi-sub">registros históricos</div></div>
+    <div class="rpt-kpi"><div class="rpt-kpi-lbl">Ocup. último snapshot</div><div class="rpt-kpi-val" id="rKpiUltimaOcup">—</div><div class="rpt-kpi-sub" id="rKpiOcupDelta"></div></div>
+    <div class="rpt-kpi"><div class="rpt-kpi-lbl">Rack prom. último</div><div class="rpt-kpi-val" id="rKpiUltimoRack">—</div><div class="rpt-kpi-sub" id="rKpiRackDelta"></div></div>
+    <div class="rpt-kpi"><div class="rpt-kpi-lbl">Tendencia ocupación</div><div class="rpt-kpi-val" id="rKpiTendencia">—</div><div class="rpt-kpi-sub">vs snapshot anterior</div></div>
+  </div>
+
+  <!-- Análisis cualitativo -->
+  <div class="analysis-box" id="analysisBox">
+    <h4>📊 Análisis automático</h4>
+    <div id="analysisContent" style="color:rgba(255,255,255,0.6);font-size:12px;font-style:italic">
+      Guarda al menos 2 snapshots para ver el análisis comparativo.
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="chart-grid">
+    <div class="chart-box">
+      <h4>Ocupación promedio por snapshot</h4>
+      <canvas id="chartOcup" height="180"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>Rack OTA promedio (Doble 2p)</h4>
+      <canvas id="chartRack" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Historial en tabla -->
+  <div style="font-size:12px;font-weight:500;margin-bottom:8px;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px">Historial de snapshots</div>
+  <div style="overflow-x:auto">
+    <table class="hist-table" id="histTable">
+      <thead><tr>
+        <th>Fecha guardado</th>
+        <th>Período forecast</th>
+        <th>Días</th>
+        <th>Ocup. prom.</th>
+        <th>Rack Doble 2p</th>
+        <th>Δ Ocup.</th>
+        <th>Días T.Alta</th>
+        <th>Días evento</th>
+      </tr></thead>
+      <tbody id="histBody">
+        <tr><td colspan="8" style="text-align:center;color:var(--tx2);padding:24px">Sin snapshots guardados aún.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /tab-reporte -->
 </div><!-- /body -->
 
 <script>
@@ -532,7 +626,7 @@ function renderForecast(){
   // Headers
   const isOta=subTab==='otas';
   document.getElementById('thead').innerHTML='<tr>'+
-    '<th style="text-align:left;width:7%">Fecha</th>'+
+    '<th style="text-align:left;width:8%;white-space:nowrap">Fecha</th>'+
     '<th style="width:12%;white-space:nowrap">Temporada</th>'+
     '<th style="width:9%">Ocup%</th>'+
     (isOta
@@ -632,8 +726,8 @@ function renderForecast(){
 
     let midCells;
     if(isOta){
-      midCells='<td style="font-weight:600;color:'+precioColor+'">'+fmtCOP(rack)+'</td>'+
-               '<td style="color:var(--tx2)">'+fmtCOP(neto)+'</td>'+
+      midCells='<td style="font-weight:600;color:'+precioColor+';text-align:center;vertical-align:middle">'+fmtCOP(rack)+'</td>'+
+               '<td style="color:var(--tx2);text-align:center;vertical-align:middle">'+fmtCOP(neto)+'</td>'+
                unifiedCell;
     } else {
       midCells='<td style="font-weight:600;color:var(--navy)">'+fmtCOP(directa)+'</td>'+
@@ -643,8 +737,8 @@ function renderForecast(){
     }
 
     html+='<tr style="background:'+rowBg+';'+leftBorder+'cursor:pointer" onclick="toggleExpFc(\''+d+'\')">'
-      +'<td><span style="color:var(--tx2);font-size:10px;margin-right:4px">'+dow+'</span>'+d.slice(5)+'</td>'
-      +'<td>'+tempCell+'</td>'
+      +'<td style="white-space:nowrap"><span style="color:var(--tx2);font-size:10px;margin-right:4px">'+dow+'</span>'+d.slice(5)+'</td>'
+      +'<td style="text-align:center;vertical-align:middle">'+tempCell+'</td>'
       +'<td>'+ocupCell+'</td>'
       +midCells
       +'</tr>';
@@ -913,6 +1007,235 @@ function showTab(tab,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   btn.classList.add('active');
+  if(tab==='reporte') renderReporte();
+}
+
+// ════════════════════════════════════════════════════════════════
+// REPORTERÍA — localStorage
+// ════════════════════════════════════════════════════════════════
+const LS_KEY = 'lincoln_rm_historial';
+let chartOcup = null, chartRack = null;
+
+function getHistorial(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveHistorial(hist){
+  localStorage.setItem(LS_KEY, JSON.stringify(hist));
+}
+
+function guardarSnapshot(){
+  const days = getDays();
+  if(days.length === 0){ alert('No hay datos de forecast cargados.'); return; }
+
+  const sel = 'Doble 2p';
+  const ol = days.map(d=>ocups[d]??null).filter(o=>o!==null);
+  const promOcup = ol.length ? Math.round(ol.reduce((a,b)=>a+b,0)/ol.length) : 0;
+
+  // Calcular rack promedio Doble 2p
+  const racks = days.map(d=>{
+    const temp = getTemp(d);
+    const ev = getEventoActivo(d);
+    return r1k(getRackConEvento(sel,temp,ev)*getMult(ocups[d]??null,!!ev));
+  });
+  const promRack = Math.round(racks.reduce((a,b)=>a+b,0)/racks.length);
+
+  // Contar días por categoría
+  const diasAlta = days.filter(d=>{ const t=getTemp(d); return t==='alta'||t==='alta-fin'||t==='feria'; }).length;
+  const diasEvento = days.filter(d=>!!getEventoActivo(d)).length;
+
+  const snapshot = {
+    ts: new Date().toISOString(),
+    fechaGuardado: new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}),
+    horaGuardado: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    periodo: days[0].slice(5)+' → '+days[days.length-1].slice(5),
+    dias: days.length,
+    promOcup,
+    promRack,
+    diasAlta,
+    diasEvento,
+    tipologia: sel,
+  };
+
+  const hist = getHistorial();
+  hist.push(snapshot);
+  saveHistorial(hist);
+
+  const msg = document.getElementById('saveMsg');
+  msg.textContent = '✓ Snapshot guardado — '+snapshot.fechaGuardado+' '+snapshot.horaGuardado;
+  setTimeout(()=>msg.textContent='', 4000);
+
+  renderReporte();
+}
+
+function limpiarHistorial(){
+  if(confirm('¿Eliminar todo el historial? Esta acción no se puede deshacer.')){
+    localStorage.removeItem(LS_KEY);
+    renderReporte();
+  }
+}
+
+function getAnalisis(hist){
+  if(hist.length < 2) return null;
+  const ult = hist[hist.length-1];
+  const ant = hist[hist.length-2];
+  const deltaOcup = ult.promOcup - ant.promOcup;
+  const deltaRack = ult.promRack - ant.promRack;
+  const items = [];
+
+  // Tendencia ocupación
+  if(Math.abs(deltaOcup) < 2){
+    items.push('La ocupación promedio se mantiene estable ('+ult.promOcup+'%) vs el snapshot anterior.');
+  } else if(deltaOcup > 0){
+    items.push('La ocupación subió +'+deltaOcup+'% desde el último snapshot ('+ant.promOcup+'% → '+ult.promOcup+'%). Señal positiva de pickup.');
+  } else {
+    items.push('La ocupación bajó '+deltaOcup+'% desde el último snapshot ('+ant.promOcup+'% → '+ult.promOcup+'%). Revisar estrategia de descuentos.');
+  }
+
+  // Rack
+  if(Math.abs(deltaRack) < 5000){
+    items.push('El rack promedio (Doble 2p) se mantiene en '+fmtCOP(ult.promRack)+'. Sin cambios en la estrategia de precios.');
+  } else if(deltaRack > 0){
+    items.push('El rack promedio subió '+fmtCOP(deltaRack)+' ('+fmtCOP(ant.promRack)+' → '+fmtCOP(ult.promRack)+'). Efecto del protocolo de alta ocupación o cambio de temporada.');
+  } else {
+    items.push('El rack promedio bajó '+fmtCOP(Math.abs(deltaRack))+'. Verificar si hay días de T.Baja que antes eran T.Alta en el período.');
+  }
+
+  // Eventos
+  if(ult.diasEvento > 0){
+    items.push(ult.diasEvento+' día(s) del período tienen precio de evento activo. Asegurarse de que estén cargados en Omnibees.');
+  }
+
+  // Días T.Alta
+  if(ult.diasAlta > 0){
+    const pct = Math.round(ult.diasAlta/ult.dias*100);
+    items.push(ult.diasAlta+' días ('+pct+'%) son T.Alta o Feria — Escapada debe estar apagada para esas fechas.');
+  }
+
+  // Recomendación final
+  if(deltaOcup <= -5 && ult.promOcup < 40){
+    items.push('⚠️ Ocupación baja y bajando — revisar visibilidad en OTAs, activar todos los descuentos en T.Baja.');
+  } else if(deltaOcup >= 5 && ult.promOcup > 65){
+    items.push('✓ Buen momentum — considerar subir rack según protocolo de ocupación.');
+  }
+
+  return items;
+}
+
+function renderReporte(){
+  const hist = getHistorial();
+  document.getElementById('rptBadge').textContent = hist.length;
+
+  // KPIs
+  document.getElementById('rKpiTotal').textContent = hist.length;
+  if(hist.length > 0){
+    const ult = hist[hist.length-1];
+    document.getElementById('rKpiUltimaOcup').textContent = ult.promOcup+'%';
+    document.getElementById('rKpiUltimoRack').textContent = fmtCOP(ult.promRack);
+
+    if(hist.length > 1){
+      const ant = hist[hist.length-2];
+      const dO = ult.promOcup - ant.promOcup;
+      const dR = ult.promRack - ant.promRack;
+      const clO = dO>0?'trend-up':dO<0?'trend-down':'trend-flat';
+      const clR = dR>0?'trend-up':dR<0?'trend-down':'trend-flat';
+      document.getElementById('rKpiOcupDelta').innerHTML = '<span class="'+clO+'">'+(dO>=0?'+':'')+dO+'% vs anterior</span>';
+      document.getElementById('rKpiRackDelta').innerHTML = '<span class="'+clR+'">'+(dR>=0?'+':'')+fmtCOP(dR)+' vs anterior</span>';
+      document.getElementById('rKpiTendencia').innerHTML = dO>2?'📈 Subiendo':dO<-2?'📉 Bajando':'➡️ Estable';
+    } else {
+      document.getElementById('rKpiOcupDelta').textContent = 'primer snapshot';
+      document.getElementById('rKpiRackDelta').textContent = 'primer snapshot';
+      document.getElementById('rKpiTendencia').textContent = '—';
+    }
+  }
+
+  // Análisis
+  const analisis = getAnalisis(hist);
+  const aBox = document.getElementById('analysisContent');
+  if(analisis){
+    aBox.innerHTML = analisis.map(a=>'<div class="analysis-item">'+a+'</div>').join('');
+  } else {
+    aBox.innerHTML = '<div style="color:rgba(255,255,255,0.6);font-size:12px;font-style:italic">Guarda al menos 2 snapshots para ver el análisis comparativo.</div>';
+  }
+
+  // Gráficos
+  const labels = hist.map(h=>h.fechaGuardado+' '+h.horaGuardado);
+  const dataOcup = hist.map(h=>h.promOcup);
+  const dataRack = hist.map(h=>h.promRack);
+
+  const chartDefaults = {
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{font:{size:9},color:'#6b7280',maxRotation:30},grid:{color:'rgba(0,0,0,0.05)'}},
+      y:{ticks:{font:{size:9},color:'#6b7280'},grid:{color:'rgba(0,0,0,0.05)'},beginAtZero:false}
+    }
+  };
+
+  if(chartOcup){ chartOcup.destroy(); chartOcup=null; }
+  if(chartRack){ chartRack.destroy(); chartRack=null; }
+
+  if(hist.length > 0){
+    chartOcup = new Chart(document.getElementById('chartOcup'),{
+      type:'line',
+      data:{
+        labels,
+        datasets:[{
+          data:dataOcup,
+          borderColor:'#1A2B4A',
+          backgroundColor:'rgba(26,43,74,0.1)',
+          borderWidth:2,
+          pointBackgroundColor:'#C9A84C',
+          pointRadius:4,
+          tension:0.3,
+          fill:true,
+        }]
+      },
+      options:{...chartDefaults, scales:{...chartDefaults.scales, y:{...chartDefaults.scales.y, min:0, max:100, ticks:{...chartDefaults.scales.y.ticks, callback:v=>v+'%'}}}}
+    });
+
+    chartRack = new Chart(document.getElementById('chartRack'),{
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          data:dataRack,
+          backgroundColor:'rgba(201,168,76,0.7)',
+          borderColor:'#C9A84C',
+          borderWidth:1,
+          borderRadius:4,
+        }]
+      },
+      options:{...chartDefaults, scales:{...chartDefaults.scales, y:{...chartDefaults.scales.y, ticks:{...chartDefaults.scales.y.ticks, callback:v=>'$'+Math.round(v/1000)+'K'}}}}
+    });
+  }
+
+  // Historial tabla
+  const tbody = document.getElementById('histBody');
+  if(hist.length === 0){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--tx2);padding:24px">Sin snapshots guardados aún.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = [...hist].reverse().map((h,i,arr)=>{
+    const prev = arr[i+1];
+    const dO = prev ? h.promOcup-prev.promOcup : null;
+    const deltaCell = dO===null ? '<td style="color:var(--tx2)">—</td>'
+      : dO>0 ? '<td class="trend-up">+'+dO+'%</td>'
+      : dO<0 ? '<td class="trend-down">'+dO+'%</td>'
+      : '<td class="trend-flat">sin cambio</td>';
+    return '<tr>'
+      +'<td><b>'+h.fechaGuardado+'</b> <span style="color:var(--tx2);font-size:10px">'+h.horaGuardado+'</span></td>'
+      +'<td>'+h.periodo+'</td>'
+      +'<td style="text-align:center">'+h.dias+'</td>'
+      +'<td style="text-align:center;font-weight:500;color:'+(h.promOcup>65?'#922B21':h.promOcup>35?'#A04000':'#1A5E1A')+'">'+h.promOcup+'%</td>'
+      +'<td style="text-align:center;font-weight:500">'+fmtCOP(h.promRack)+'</td>'
+      +deltaCell
+      +'<td style="text-align:center">'+h.diasAlta+'</td>'
+      +'<td style="text-align:center">'+h.diasEvento+'</td>'
+      +'</tr>';
+  }).join('');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -934,6 +1257,7 @@ tipoSel.onchange=renderForecast;
 updateEvBadge();
 renderForecast();
 renderEventos();
+renderReporte();
 </script>
 </body>
 </html>
