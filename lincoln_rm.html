@@ -532,12 +532,12 @@ function renderForecast(){
   // Headers
   const isOta=subTab==='otas';
   document.getElementById('thead').innerHTML='<tr>'+
-    '<th style="text-align:left;width:8%">Fecha</th>'+
-    '<th style="width:14%;white-space:nowrap">Temporada</th>'+
-    '<th style="width:12%">Ocup%</th>'+
+    '<th style="text-align:left;width:7%">Fecha</th>'+
+    '<th style="width:12%;white-space:nowrap">Temporada</th>'+
+    '<th style="width:9%">Ocup%</th>'+
     (isOta
-      ?'<th style="width:11%">Rack OTA</th><th style="width:11%">Neto −15%</th><th style="text-align:left">Descuentos y acción Omnibees</th>'
-      :'<th style="width:11%">Directa</th><th style="width:11%">Walk-in</th><th style="text-align:left">Instrucción y acción</th>')+
+      ?'<th style="width:10%">Rack<br>OTA</th><th style="width:9%">Neto<br>−15%</th><th style="text-align:left;width:14%">Descuentos</th><th style="text-align:left">Acción Omnibees</th>'
+      :'<th style="width:10%">Directa</th><th style="width:10%">Walk-in</th><th style="text-align:left;width:14%">Instrucción</th><th style="text-align:left">Acción</th>')+
     '</tr>';
 
   let html='',prevTemp=null;
@@ -566,7 +566,7 @@ function renderForecast(){
     if(alerta){
       const ac=ALERTA_CFG[alerta.tipo]||ALERTA_CFG.INFO;
       html+='<tr class="alert-row" style="background:'+ac.bg+'">'+
-        '<td colspan="6" style="text-align:left">'+
+        '<td colspan="7" style="text-align:left">'+
         '<span style="font-size:10px;font-weight:700;color:'+ac.color+'">'+ac.icon+' ACCIÓN OMNIBEES — '+alerta.tipo+':</span> '+
         '<span style="font-size:10px;color:'+ac.color+'">'+alerta.msg+'</span></td></tr>';
     }
@@ -597,30 +597,37 @@ function renderForecast(){
     let unifiedCell;
     if(isOta){
       const ac2=desc.geniusOk?(desc.escapadaOk?'Genius + Escapada':'Genius activo'):'Genius apagado';
-      const descSpan='<span style="font-size:10px;color:'+(desc.geniusOk?'#1A5E1A':'#922B21')+'">'+ac2+'</span>';
-      let recDiv='';
+      const descCell='<td style="text-align:left;padding:5px 7px;vertical-align:middle">'
+        +'<span style="font-size:10px;color:'+(desc.geniusOk?'#1A5E1A':'#922B21')+'">'+ac2+'</span>'
+        +'</td>';
+      let accionCell;
       if(rec.cambio){
         const rc=REC_CFG[rec.nivel]||REC_CFG.ok;
-        recDiv='<div style="margin-top:4px;padding:4px 7px;border-radius:4px;background:'+rc.bg+';border-left:2px solid '+rc.color+'">'
-          +'<span style="font-size:10px;font-weight:700;color:'+rc.color+'">⚡ Subir a '+fmtCOP(rec.precioSugerido)+'</span>'
-          +'<span style="font-size:9px;color:'+rc.color+';margin-left:5px">(actual '+fmtCOP(rack)+')</span>'
-          +'<div style="font-size:9px;color:'+rc.color+';margin-top:1px">'+rec.accion+'</div>'
-          +'</div>';
+        accionCell='<td style="text-align:left;padding:4px 7px;vertical-align:middle">'
+          +'<div style="padding:5px 8px;border-radius:5px;background:'+rc.bg+';border-left:3px solid '+rc.color+'">'
+          +'<span style="font-size:10px;font-weight:700;color:'+rc.color+'">⚡ '+fmtCOP(rec.precioSugerido)+'</span>'
+          +'<span style="font-size:9px;color:'+rc.color+';margin-left:4px;display:block;margin-top:1px">'+rec.accion+'</span>'
+          +'</div></td>';
+      } else {
+        accionCell='<td style="text-align:left;padding:5px 7px;vertical-align:middle;font-size:10px;color:#aaa">Sin acción</td>';
       }
-      unifiedCell='<td style="text-align:left;padding:5px 7px;vertical-align:top">'+descSpan+recDiv+'</td>';
+      unifiedCell=descCell+accionCell;
     } else {
       const inst=isFeria?'Feria: OTA T.Alta finde. Sin descuento.':
         isAlta?'T.Alta: NR preferido. No bajar.':
-        ocup!==null&&ocup<35?'Ocup. baja: precio fijo. Ofrecer desayuno.':
-        'Tarifa estándar. No negociar por debajo.';
-      let walkDiv='';
+        ocup!==null&&ocup<35?'Ocup. baja: ofrecer desayuno.':
+        'Tarifa estándar.';
+      let dirAccionCell;
       if(ocup!==null&&ocup>80){
-        walkDiv='<div style="margin-top:4px;padding:4px 7px;border-radius:4px;background:#FEF0EE;border-left:2px solid #C62828">'
-          +'<span style="font-size:10px;font-weight:700;color:#C62828">⚡ Walk-in: cobrar '+fmtCOP(walkin)+'</span>'
-          +'<div style="font-size:9px;color:#C62828">+$30.000 sobre base por ocup &gt;80%</div>'
-          +'</div>';
+        dirAccionCell='<td style="text-align:left;padding:4px 7px;vertical-align:middle">'
+          +'<div style="padding:5px 8px;border-radius:5px;background:#FEF0EE;border-left:3px solid #C62828">'
+          +'<span style="font-size:10px;font-weight:700;color:#C62828">⚡ Walk-in: '+fmtCOP(walkin)+'</span>'
+          +'<span style="font-size:9px;color:#C62828;display:block;margin-top:1px">+$30.000 por ocup &gt;80%</span>'
+          +'</div></td>';
+      } else {
+        dirAccionCell='<td style="text-align:left;padding:5px 7px;vertical-align:middle;font-size:10px;color:#aaa">Sin acción</td>';
       }
-      unifiedCell='<td style="text-align:left;padding:5px 7px;vertical-align:top"><span style="font-size:10px;color:#555">'+inst+'</span>'+walkDiv+'</td>';
+      unifiedCell='<td style="text-align:left;padding:5px 7px;vertical-align:middle;font-size:10px;color:#555">'+inst+'</td>'+dirAccionCell;
     }
 
     let midCells;
@@ -677,7 +684,7 @@ function renderForecast(){
         '<span style="font-size:10px;color:var(--tx2);margin-left:8px">Impacto '+evento.impacto+' — precio evento activo este día</span>'+
         '</div>':'';
 
-      html+='<tr style="background:'+rowBg+'"><td colspan="6" style="padding:8px 12px">'
+      html+='<tr style="background:'+rowBg+'"><td colspan="7" style="padding:8px 12px">'
         +'<div class="exp-inner">'+eventoInfo
         +'<div style="font-size:11px;font-weight:500;margin-bottom:8px">Todas las tipologías — '+d+'</div>'
         +'<div style="overflow-x:auto"><table style="width:100%;font-size:10px;border-collapse:collapse;min-width:440px">'
