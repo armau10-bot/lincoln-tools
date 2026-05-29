@@ -298,13 +298,10 @@ let subTab = 'otas';
 let omnibeesChecked = {};  // {fecha: true/false} — marcadas como actualizadas en Omnibees
 
 let eventos = [
-  {id:'E005',nombre:'FERIA DE LAS FLORES',    fecha:'2026-07-31',fechaFin:'2026-08-09',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
-  {id:'E006',nombre:'Desfile Silleteros',      fecha:'2026-08-07',fechaFin:'2026-08-07',venue:'Ciudad completa',impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co'},
-  {id:'E013',nombre:'Morat',                   fecha:'2026-05-30',fechaFin:'2026-05-30',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'ticketmaster.co'},
-  {id:'E008',nombre:'Arcangel — Noche 1',      fecha:'2026-09-04',fechaFin:'2026-09-04',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'infobae.com'},
-  {id:'E008B',nombre:'Arcangel — Noche 2',     fecha:'2026-09-05',fechaFin:'2026-09-05',venue:'Atanasio Girardot',impacto:'alto',ocup:null,fuente:'infobae.com'},
-  {id:'E002',nombre:'Carlos Vives',            fecha:'2026-10-17',fechaFin:'2026-10-17',venue:'Est. Polideportivo Envigado',impacto:'medio',ocup:null,fuente:'ticketlive.co'},
-  {id:'E003',nombre:'Colombiamoda 2026',       fecha:'2026-07-28',fechaFin:'2026-07-30',venue:'Plaza Mayor',impacto:'medio',ocup:null,fuente:'colombiamoda.com'},
+  {id:'E003',nombre:'Colombiamoda 2026',   fecha:'2026-07-28',fechaFin:'2026-07-30',venue:'Plaza Mayor',       impacto:'medio', ocup:null,fuente:'colombiamoda.com',             omnibees:false},
+  {id:'E005',nombre:'FERIA DE LAS FLORES', fecha:'2026-07-31',fechaFin:'2026-08-09',venue:'Ciudad completa',   impacto:'maximo',ocup:null,fuente:'ferialasflores.gov.co',         omnibees:false},
+  {id:'E008',nombre:'Arcangel — Noche 1',  fecha:'2026-09-04',fechaFin:'2026-09-05',venue:'Atanasio Girardot', impacto:'alto',  ocup:null,fuente:'infobae.com',                   omnibees:false},
+  {id:'EDC', nombre:'EDC Colombia',        fecha:'2026-10-10',fechaFin:'2026-10-11',venue:'Atanasio Girardot', impacto:'alto',  ocup:null,fuente:'ticketmaster.co/event/edc-2026', omnibees:false},
 ];
 
 let filtroActual = 'todos';
@@ -535,12 +532,12 @@ function renderForecast(){
   // Headers
   const isOta=subTab==='otas';
   document.getElementById('thead').innerHTML='<tr>'+
-    '<th style="text-align:left;width:9%">Fecha</th>'+
-    '<th style="width:10%">Temporada</th>'+
-    '<th style="width:11%">Ocup%</th>'+
+    '<th style="text-align:left;width:8%">Fecha</th>'+
+    '<th style="width:14%;white-space:nowrap">Temporada</th>'+
+    '<th style="width:12%">Ocup%</th>'+
     (isOta
-      ?'<th style="width:10%">Rack OTA</th><th style="width:10%">Neto −15%</th><th style="text-align:left;min-width:200px">Descuentos y acción Omnibees</th>'
-      :'<th style="width:10%">Directa</th><th style="width:10%">Walk-in</th><th style="text-align:left;min-width:180px">Instrucción y acción</th>')+
+      ?'<th style="width:11%">Rack OTA</th><th style="width:11%">Neto −15%</th><th style="text-align:left">Descuentos y acción Omnibees</th>'
+      :'<th style="width:11%">Directa</th><th style="width:11%">Walk-in</th><th style="text-align:left">Instrucción y acción</th>')+
     '</tr>';
 
   let html='',prevTemp=null;
@@ -577,12 +574,11 @@ function renderForecast(){
 
     // Badge de evento sobre la temporada
     const tempCell=evento
-      ?'<div>'+
-        '<span class="badge" style="background:'+IMP_CFG[evento.impacto].bg+';color:'+IMP_CFG[evento.impacto].color+'">'+evento.nombre+'</span>'+
-        '</div><div style="margin-top:2px">'+
+      ?'<div style="white-space:nowrap">'+
+        '<span class="badge" style="background:'+IMP_CFG[evento.impacto].bg+';color:'+IMP_CFG[evento.impacto].color+';font-size:9px;display:block;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;max-width:130px">'+evento.nombre+'</span>'+
         '<span class="badge" style="background:'+tc.bg+';color:'+tc.color+';font-size:9px">'+tc.label+'</span>'+
         '</div>'
-      :'<span class="badge" style="background:'+tc.bg+';color:'+tc.color+'">'+tc.label+'</span>';
+      :'<span class="badge" style="background:'+tc.bg+';color:'+tc.color+';white-space:nowrap">'+tc.label+'</span>';
 
     // Input ocupación
     const pct=ocup!==null?Math.min(ocup,100):0;
@@ -595,13 +591,7 @@ function renderForecast(){
 
     // Celda de precio — si hay evento, mostrar precio evento + checkbox Omnibees
     const precioColor=evento?(IMP_CFG[evento.impacto]?.color||'#7D0000'):(isFeria?'#7D0000':isAlta?'#7D3C00':'var(--tx)');
-    const isChecked=!!omnibeesChecked[d];
-    const checkCell=evento?
-      '<div style="margin-top:3px">'+
-      '<label class="omnibees-check'+(isChecked?' done':'')+'" onclick="event.stopPropagation();toggleCheck(\''+d+'\')" title="Marcar como actualizado en Omnibees">'+
-      '<input type="checkbox" '+(isChecked?'checked':'')+' onchange="toggleCheck(\''+d+'\')" onclick="event.stopPropagation()">'+
-      (isChecked?'✓ Actualizado en Omnibees':'Marcar actualizado en Omnibees')+
-      '</label></div>':'';
+    // checkbox movido a eventos
 
     // Celda unificada descuentos + recomendación
     let unifiedCell;
@@ -635,11 +625,11 @@ function renderForecast(){
 
     let midCells;
     if(isOta){
-      midCells='<td style="font-weight:600;color:'+precioColor+'">'+fmtCOP(rack)+checkCell+'</td>'+
+      midCells='<td style="font-weight:600;color:'+precioColor+'">'+fmtCOP(rack)+'</td>'+
                '<td style="color:var(--tx2)">'+fmtCOP(neto)+'</td>'+
                unifiedCell;
     } else {
-      midCells='<td style="font-weight:600;color:var(--navy)">'+fmtCOP(directa)+checkCell+'</td>'+
+      midCells='<td style="font-weight:600;color:var(--navy)">'+fmtCOP(directa)+'</td>'+
                '<td style="color:'+(ocup!==null&&ocup>80?'#922B21':'var(--tx2)')+'">'+fmtCOP(walkin)+
                (ocup!==null&&ocup>80?'<span style="font-size:9px;color:#922B21;margin-left:2px">+30K</span>':'')+
                '</td>'+unifiedCell;
@@ -759,6 +749,10 @@ function eliminarEvento(id){
   }
 }
 
+function toggleOmnibees(id){
+  eventos=eventos.map(e=>e.id===id?{...e,omnibees:!e.omnibees}:e);
+  renderEventos();
+}
 function toggleExpEv(id){expandedEvId=expandedEvId===id?null:id;renderEventos();}
 
 function agregarEvento(){
@@ -773,6 +767,7 @@ function agregarEvento(){
     impacto:document.getElementById('nImpacto').value,
     ocup:null,
     fuente:document.getElementById('nFuente').value,
+    omnibees:false,
   });
   document.getElementById('nuevoForm').style.display='none';
   ['nNombre','nVenue','nFuente'].forEach(id=>{document.getElementById(id).value='';});
@@ -842,6 +837,13 @@ function renderEventos(){
             Acción recomendada — ${dias<0?'Pasado':dias===0?'Hoy':dias+'d restantes'}
           </div>
           <div style="font-size:12px">${accion}</div>
+        </div>
+        <div style="margin-bottom:10px;padding:8px 12px;background:${ev.omnibees?'#D5F5E3':'#FEF0EE'};border-radius:var(--r);border:0.5px solid ${ev.omnibees?'#1A5E1A':'#C62828'}">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:500;color:${ev.omnibees?'#1A5E1A':'#C62828'}">
+            <input type="checkbox" ${ev.omnibees?'checked':''} style="width:16px;height:16px;cursor:pointer;accent-color:${ev.omnibees?'#1A5E1A':'#C62828'}"
+              onchange="toggleOmnibees('${ev.id}')" onclick="event.stopPropagation()">
+            ${ev.omnibees?'✓ Precio cargado en Omnibees':'⬜ Marcar cuando cargues el precio en Omnibees'}
+          </label>
         </div>
         <div class="ev-grid">
           <div><label>Impacto (cambia precios)</label>
