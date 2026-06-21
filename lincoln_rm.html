@@ -436,13 +436,18 @@ function isTramo1(s){
 function getTemp(s){
   const d=parseLD(s),m=d.getMonth()+1,day=d.getDate(),dow=d.getDay();
   const esFin=(dow===5||dow===6);
+  // 1. Feria — máxima prioridad, siempre
   if((m===7&&day>=31)||(m===8&&day<=9)) return 'feria';
+  // 2. Tramo 1 promocional (19 jun-22 jul) — PRIORIDAD SOBRE Vacaciones T.Alta
+  //    Acordado con socios: este rango entero opera en baja-sem promocional,
+  //    reemplaza la clasificación T.Alta que tenía Vacaciones mitad de año
+  if(isTramo1(s)) return 'baja-sem';
+  // 3. Resto de T.Alta (lo que no cae en Tramo1)
   if((m===6&&day>=20)||(m===7&&day<=10)) return esFin?'alta-fin':'alta';
   if(m===10&&day>=5&&day<=11)            return esFin?'alta-fin':'alta';
   if(m===12)                             return esFin?'alta-fin':'alta';
   if(m===4&&day<=15)                     return esFin?'alta-fin':'alta';
-  // Tramo 1 promocional (19 jun-22 jul): SIEMPRE baja-sem, sin diferenciar finde
-  if(isTramo1(s)) return 'baja-sem';
+  // 4. T.Baja normal
   if(esFin) return 'baja-fin';
   return 'baja-sem';
 }
